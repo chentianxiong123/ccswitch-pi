@@ -25,6 +25,7 @@ pub fn prompt_file_path(app: &AppType) -> Result<PathBuf, AppError> {
         AppType::OpenCode => get_opencode_dir(),
         AppType::OpenClaw => get_openclaw_dir(),
         AppType::Hermes => crate::hermes_config::get_hermes_dir(),
+            AppType::PiAgent => dirs::home_dir().unwrap().join(".pi-agent"),
         AppType::ClaudeDesktop => unreachable!("handled above"),
     };
 
@@ -33,6 +34,7 @@ pub fn prompt_file_path(app: &AppType) -> Result<PathBuf, AppError> {
         AppType::Codex => "AGENTS.md",
         AppType::Gemini => "GEMINI.md",
         AppType::OpenCode | AppType::OpenClaw | AppType::Hermes => "AGENTS.md",
+            AppType::PiAgent => "AGENTS.md",
         AppType::ClaudeDesktop => unreachable!("handled above"),
     };
 

@@ -39,7 +39,7 @@ pub(crate) use live::{
 // Internal re-exports
 use live::{
     remove_hermes_provider_from_live, remove_openclaw_provider_from_live,
-    remove_opencode_provider_from_live, write_gemini_live,
+    remove_opencode_provider_from_live, remove_pi_agent_provider_from_live, write_gemini_live,
 };
 use usage::validate_usage_script;
 
