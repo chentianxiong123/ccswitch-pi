@@ -1,45 +1,165 @@
-# Claude Code 供应商切换器
+<div align="center">
 
-一个用于管理和切换 Claude Code 不同供应商配置的桌面应用。
+# CC Switch Fork
 
-## 功能特性
+English | [中文](README_ZH.md) | [日本語](README_JA.md)
 
-- 🔄 一键切换不同供应商（Anthropic、OpenRouter 等）
-- 🔍 实时监控供应商状态和响应时间
-- ⚡ 支持添加自定义供应商
-- 🎨 简洁美观的图形界面
-- 🔒 安全存储 API 密钥
+This fork keeps the Web runtime as the only official GitHub Release deliverable.
 
-## 开发
+</div>
+
+## Scope
+
+This fork is used for local customization and ongoing development. The current codebase provides:
+
+- Configuration management for Claude Code, Codex, Gemini, OpenCode, and OpenClaw
+- MCP, prompts, skills, proxy, failover, and usage-related features
+- A single-binary Web runtime for official releases
+- Tauri desktop code kept in-repo for local development only
+
+## Screenshots
+
+|                  Main Interface                   |                  Add Provider                  |
+| :-----------------------------------------------: | :--------------------------------------------: |
+| ![Main Interface](assets/screenshots/main-en.png) | ![Add Provider](assets/screenshots/add-en.png) |
+
+## Official Release Assets
+
+GitHub Releases publish the Web runtime only.
+
+| Platform | Asset | Run |
+| --- | --- | --- |
+| Windows x86_64 | `cc-switch-web-v{version}-windows-x86_64.exe` | `./cc-switch-web-v{version}-windows-x86_64.exe` |
+| Linux x86_64 | `cc-switch-web-v{version}-linux-x86_64-ubuntu20.04` | `chmod +x ./cc-switch-web-v{version}-linux-x86_64-ubuntu20.04 && ./cc-switch-web-v{version}-linux-x86_64-ubuntu20.04` |
+
+### Runtime defaults
+
+- URL: `http://127.0.0.1:17666`
+- Port override: `CC_SWITCH_PORT=8080`
+- Host override: `CC_SWITCH_HOST=0.0.0.0`
+- Linux compatibility baseline: Ubuntu 20.04+
+
+### Platform notes
+
+- Windows: run the `.exe` directly in PowerShell or Command Prompt.
+- Linux: official assets are built on Ubuntu 20.04 to keep the minimum supported baseline explicit.
+
+## Local Development
+
+### Requirements
+
+- Node.js 18+
+- pnpm 8+ or npm
+- Rust 1.85+
+- Tauri CLI 2.8+ for desktop-only local development
+
+### Common Commands
 
 ```bash
-# 安装依赖
-npm install
+# Install dependencies
+pnpm install
 
-# 开发模式
-npm run dev
+# Web development
+pnpm dev:server
+pnpm dev:web
 
-# 构建应用
-npm run build
+# Type checking
+pnpm typecheck
 
-# 打包发布
-npm run dist
+# Frontend unit tests
+pnpm test:unit
+
+# Build Web frontend (default build target)
+pnpm build
+
+# Desktop packaging when needed
+pnpm build:desktop
 ```
 
-## 使用说明
+### Local Web Launch
 
-1. 点击"添加供应商"添加你的 API 配置
-2. 系统会自动检测每个供应商的状态
-3. 选择要使用的供应商，点击单选按钮切换
-4. 配置会自动保存到 Claude Code 的配置文件中
+```bash
+./start-web.sh
+```
 
-## 技术栈
+Then open:
 
-- Electron
-- React
-- TypeScript
-- Vite
+```text
+http://localhost:17666
+```
+
+Stop the service:
+
+```bash
+./stop-web.sh
+```
+
+Runtime files are written to `./.run/web/` by default:
+
+- log: `backend.log`
+- pid: `backend.pid`
+
+To override the runtime directory:
+
+```bash
+CC_SWITCH_RUNTIME_DIR=/tmp/cc-switch-web ./start-web.sh
+```
+
+### Manual Web Build
+
+```bash
+pnpm build
+cargo build --release --manifest-path crates/server/Cargo.toml
+./crates/server/target/release/cc-switch-web
+```
+
+### Local Linux release-parity build
+
+```bash
+./build-web-release.sh
+```
+
+This script emits `release-web/cc-switch-web-v{version}-linux-x86_64-ubuntu20.04`.
+
+### Release Workflow
+
+Stage the changes you want in the release commit first, then run the helper:
+
+```bash
+git add <your-files>
+pnpm release:cut -- 3.12.6 --push
+```
+
+The helper synchronizes these version files before commit and tag creation:
+
+- `package.json`
+- `src-tauri/Cargo.toml`
+- `src-tauri/tauri.conf.json`
+
+To update version fields only:
+
+```bash
+pnpm release:sync-version -- 3.12.6
+```
+
+## Tech Stack
+
+- Frontend: React 18, TypeScript, Vite, TailwindCSS, TanStack Query
+- Backend: Tauri 2, Rust, tokio, serde
+- Testing: vitest, MSW, @testing-library/react
+
+## Project Layout
+
+```text
+src/                 frontend code
+src-tauri/           Tauri desktop backend
+crates/server/       web server
+crates/core/         shared core logic
+tests/               frontend tests
+assets/              screenshots and assets
+docs/                supplementary documentation
+```
 
 ## License
 
-MIT
+See [LICENSE](LICENSE).
