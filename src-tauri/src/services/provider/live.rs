@@ -186,6 +186,8 @@ pub(crate) fn provider_exists_in_live_config(
             .map(|providers| providers.contains_key(provider_id)),
         AppType::Hermes => crate::hermes_config::get_providers()
             .map(|providers| providers.contains_key(provider_id)),
+        AppType::PiAgent => crate::pi_agent_config::get_providers()
+            .map(|providers| providers.contains_key(provider_id)),
         _ => Ok(false),
     }
 }
@@ -523,7 +525,7 @@ fn settings_contain_common_config(app_type: &AppType, settings: &Value, snippet:
             }
             _ => false,
         },
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::ClaudeDesktop => false,
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent | AppType::ClaudeDesktop => false,
     }
 }
 
@@ -593,7 +595,7 @@ pub(crate) fn remove_common_config_from_settings(
             }
             Ok(result)
         }
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::ClaudeDesktop => {
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent | AppType::ClaudeDesktop => {
             Ok(settings.clone())
         }
     }
@@ -650,7 +652,7 @@ fn apply_common_config_to_settings(
             }
             Ok(result)
         }
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::ClaudeDesktop => {
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent | AppType::ClaudeDesktop => {
             Ok(settings.clone())
         }
     }
@@ -1141,6 +1143,10 @@ pub(crate) fn write_live_snapshot(app_type: &AppType, provider: &Provider) -> Re
             crate::hermes_config::set_provider(&provider.id, provider.settings_config.clone())?;
             log::debug!("Hermes provider '{}' written to live config", provider.id);
         }
+        AppType::PiAgent => {
+            crate::pi_agent_config::set_provider(&provider.id, provider.settings_config.clone())?;
+            log::debug!("PiAgent provider '{}' written to live config", provider.id);
+        }
     }
     Ok(())
 }
@@ -1395,6 +1401,18 @@ pub fn read_live_settings(app_type: AppType) -> Result<Value, AppError> {
             let config = crate::hermes_config::yaml_to_json(&yaml_config)?;
             Ok(config)
         }
+        AppType::PiAgent => {
+            let config_path = dirs::home_dir().unwrap().join(".pi-agent").join("config.json");
+            if !config_path.exists() {
+                return Err(AppError::localized(
+                    "pi_agent.config.missing",
+                    "PiAgent 配置文件不存在",
+                    "PiAgent configuration file not found",
+                ));
+            }
+            let config = read_json_file::<Value>(&config_path)?;
+            Ok(config)
+        }
     }
 }
 
@@ -1488,8 +1506,8 @@ pub fn import_default_config(state: &AppState, app_type: AppType) -> Result<bool
                 "config": config_obj
             })
         }
-        // OpenCode, OpenClaw and Hermes use additive mode and are handled by early return above
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes => {
+        // OpenCode, OpenClaw, Hermes and PiAgent use additive mode and are handled by early return above
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent => {
             unreachable!("additive mode apps are handled by early return")
         }
     };

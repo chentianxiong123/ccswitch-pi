@@ -2,7 +2,11 @@
 # 用于加速依赖编译和缓存
 
 [source.crates-io]
-registry = "https://github.com/rust-lang/crates.io-index"
+registry = "sparse+https://index.crates.io/"
+replace-with = 'ustc'
+
+[source.ustc]
+registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
 
 # 替换为国内镜像源（如果在中国）
 # [source.crates-io]
