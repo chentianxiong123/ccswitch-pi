@@ -1,5 +1,12 @@
 # Cargo 配置优化
 # 用于加速依赖编译和缓存
+#
+# 镜像源优先级（从高到低）：
+#   1. USTC 稀疏协议（国内，最快）
+#   2. crates.io 官方稀疏协议（备用）
+#   3. crates.io 官方 git 协议（兜底）
+#
+# 切换方式：修改 [source.crates-io] 的 registry 值即可
 
 [source.crates-io]
 registry = "sparse+https://index.crates.io/"
@@ -7,14 +14,6 @@ replace-with = 'ustc'
 
 [source.ustc]
 registry = "sparse+https://mirrors.ustc.edu.cn/crates.io-index/"
-
-# 替换为国内镜像源（如果在中国）
-# [source.crates-io]
-# registry = "https://mirrors.ustc.edu.cn/crates.io-index"
-# replace-with = 'ustc'
-
-# [source.ustc]
-# registry = "https://mirrors.ustc.edu.cn/crates.io-index"
 
 [build]
 # 并行编译
