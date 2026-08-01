@@ -301,6 +301,16 @@ pub fn sync_all_session_usage(db: &Database) -> Result<SessionSyncResult, AppErr
         Err(e) => result.errors.push(format!("Pi 同步失败: {e}")),
     }
 
+    match services::session_usage_opencode::sync_opencode_usage(db) {
+        Ok(opencode_result) => {
+            result.imported += opencode_result.imported;
+            result.skipped += opencode_result.skipped;
+            result.files_scanned += opencode_result.files_scanned;
+            result.errors.extend(opencode_result.errors);
+        }
+        Err(e) => result.errors.push(format!("OpenCode 同步失败: {e}")),
+    }
+
     Ok(result)
 }
 
