@@ -54,7 +54,7 @@ tauri-plugin-window-state = { version = "2", optional = true }
 dirs = "5.0"
 toml = "0.8"
 toml_edit = "0.22"
-reqwest = { version = "0.12", features = ["rustls-tls", "json", "stream", "socks"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json", "stream", "socks", "charset", "http2"] }
 arboard = "3.6"
 flate2 = "1"
 brotli = "7"
@@ -78,7 +78,7 @@ rustls = "0.23"
 webpki-roots = "0.26"
 rustls-native-certs = "0.8"
 regex = "1.10"
-rquickjs = { version = "0.8", features = ["array-buffer", "classes"] }
+rquickjs = { version = "0.8", features = ["array-buffer", "classes", "bindgen"] }
 thiserror = "2.0"
 anyhow = "1.0"
 zip = "2.2"
