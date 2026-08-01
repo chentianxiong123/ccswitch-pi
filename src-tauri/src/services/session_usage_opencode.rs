@@ -81,9 +81,22 @@ pub fn sync_opencode_usage(db: &Database) -> Result<SessionSyncResult, AppError>
         });
     }
 
-    // 打开 opencode 的 SQLite 数据库（只读）
+    // 打开 opencode 的 SQLite 数据库（只读）。
+    // opencode 运行在 WAL 模式且由另一进程（电脑端）持有，当 DB 位于 NFS/网络
+    // 挂载上时，跨挂载读取活跃的 -wal/-shm 可能因锁语义不一致而失败
+    // （"file is not a database"）。此时降级为 immutable 模式：跳过 WAL 直接读
+    // 主库。opencode 默认 autocheckpoint 会让主库持续包含最新数据，最多丢失
+    // 尚未 checkpoint 的尾部帧，下一轮同步自动补上。
     let opencode_conn =
         rusqlite::Connection::open_with_flags(&db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+            .or_else(|_| {
+                let uri = format!("file:{}?immutable=1", db_path.display());
+                rusqlite::Connection::open_with_flags(
+                    &uri,
+                    rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY
+                        | rusqlite::OpenFlags::SQLITE_OPEN_URI,
+                )
+            })
             .map_err(|e| AppError::Database(format!("无法打开 opencode.db: {e}")))?;
 
     let mut result = SessionSyncResult {

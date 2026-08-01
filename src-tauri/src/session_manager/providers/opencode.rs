@@ -102,7 +102,16 @@ fn scan_sessions_sqlite() -> Vec<SessionMeta> {
     let conn = match Connection::open_with_flags(
         &db_path,
         rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
-    ) {
+    )
+    .or_else(|_| {
+        let uri = format!("file:{}?immutable=1", db_path.display());
+        Connection::open_with_flags(
+            &uri,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY
+                | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX
+                | rusqlite::OpenFlags::SQLITE_OPEN_URI,
+        )
+    }) {
         Ok(c) => c,
         Err(_) => return Vec::new(),
     };
@@ -234,6 +243,15 @@ pub fn load_messages_sqlite(source: &str) -> Result<Vec<SessionMessage>, String>
         &db_path,
         rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
     )
+    .or_else(|_| {
+        let uri = format!("file:{}?immutable=1", db_path.display());
+        Connection::open_with_flags(
+            &uri,
+            rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY
+                | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX
+                | rusqlite::OpenFlags::SQLITE_OPEN_URI,
+        )
+    })
     .map_err(|e| format!("Failed to open OpenCode database: {e}"))?;
 
     let mut msg_stmt = conn
