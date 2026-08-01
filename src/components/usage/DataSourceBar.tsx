@@ -43,6 +43,39 @@ export function DataSourceBar({ refreshIntervalMs }: DataSourceBarProps) {
 
       queryClient.invalidateQueries({ queryKey: usageKeys.all });
 
+      const sources = result.sources ?? [];
+      const hasDetail = sources.length > 0;
+
+      if (hasDetail) {
+        const detailLines = sources.map((s) => {
+          const label = t(`usage.dataSource.${s.app}`, {
+            defaultValue: s.app,
+          });
+          if (s.errors.length > 0) {
+            return `${label} ✗ ${s.errors[0]}`;
+          }
+          if (s.imported > 0) {
+            return `${label} ✓ +${s.imported}`;
+          }
+          if (s.filesScanned > 0) {
+            return `${label} ✓ 无新增`;
+          }
+          return `${label} ✓`;
+        });
+        const summary = `${t("usage.sessionSync.imported", {
+          count: result.imported,
+          defaultValue: "Imported {{count}} records from session logs",
+        })}\n${detailLines.join("\n")}`;
+        if (result.errors.length > 0) {
+          toast.error(summary, { duration: 6000 });
+        } else if (result.imported > 0) {
+          toast.success(summary, { duration: 4000 });
+        } else {
+          toast.info(summary, { duration: 4000 });
+        }
+        return;
+      }
+
       if (result.imported > 0) {
         toast.success(
           t("usage.sessionSync.imported", {

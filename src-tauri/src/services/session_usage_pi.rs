@@ -58,6 +58,7 @@ pub fn sync_pi_usage(db: &Database) -> Result<SessionSyncResult, AppError> {
             skipped: 0,
             files_scanned: 0,
             errors: vec![],
+            sources: vec![],
         });
     }
 
@@ -66,6 +67,7 @@ pub fn sync_pi_usage(db: &Database) -> Result<SessionSyncResult, AppError> {
         skipped: 0,
         files_scanned: 0,
         errors: vec![],
+        sources: vec![],
     };
 
     // 收集所有 .jsonl 文件
