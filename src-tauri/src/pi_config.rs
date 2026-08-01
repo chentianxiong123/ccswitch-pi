@@ -1,7 +1,7 @@
 //! Pi-Agent 配置文件读写模块
 //!
 //! 处理 `~/.pi/agent/models.json` 配置文件的读写操作。
-//! pi-agent 使用累加式供应商管理，所有供应商配置共存于同一配置文件中。
+//! pi 使用累加式供应商管理，所有供应商配置共存于同一配置文件中。
 //!
 //! ## models.json 结构
 //!
@@ -48,15 +48,15 @@ use std::path::PathBuf;
 // Path Functions
 // ============================================================================
 
-/// 获取 pi-agent 配置目录
+/// 获取 pi 配置目录
 ///
 /// 解析顺序：
-///   1. CCS 设置 `pi_agent_config_dir`（显式覆盖）
+///   1. CCS 设置 `pi_config_dir`（显式覆盖）
 ///   2. `PI_CODING_AGENT_DIR` 环境变量
 ///   3. `~/.pi/agent`
-pub fn get_pi_agent_dir() -> PathBuf {
+pub fn get_pi_dir() -> PathBuf {
     // 1. 设置覆盖
-    if let Some(override_dir) = crate::settings::get_pi_agent_override_dir() {
+    if let Some(override_dir) = crate::settings::get_pi_override_dir() {
         return override_dir;
     }
 
@@ -72,21 +72,21 @@ pub fn get_pi_agent_dir() -> PathBuf {
     crate::config::get_home_dir().join(".pi").join("agent")
 }
 
-/// 获取 pi-agent models.json 文件路径
+/// 获取 pi models.json 文件路径
 ///
 /// 返回 `~/.pi/agent/models.json`
 pub fn get_models_path() -> PathBuf {
-    get_pi_agent_dir().join("models.json")
+    get_pi_dir().join("models.json")
 }
 
 // ============================================================================
 // Type Definitions
 // ============================================================================
 
-/// pi-agent 模型成本配置
+/// pi 模型成本配置
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct PiAgentModelCost {
+pub struct PiModelCost {
     #[serde(default)]
     pub input: f64,
     #[serde(default)]
@@ -97,10 +97,10 @@ pub struct PiAgentModelCost {
     pub cache_write: f64,
 }
 
-/// pi-agent 单模型定义
+/// pi 单模型定义
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PiAgentModelEntry {
+pub struct PiModelEntry {
     pub id: String,
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -124,16 +124,16 @@ pub struct PiAgentModelEntry {
     pub max_tokens: Option<u32>,
 
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub cost: Option<PiAgentModelCost>,
+    pub cost: Option<PiModelCost>,
 
     #[serde(flatten)]
     pub extra: HashMap<String, Value>,
 }
 
-/// pi-agent 供应商配置（对应 models.providers 中的条目）
+/// pi 供应商配置（对应 models.providers 中的条目）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PiAgentProviderConfig {
+pub struct PiProviderConfig {
     /// 显示名称
     #[serde(skip_serializing_if = "Option::is_none")]
     pub name: Option<String>,
@@ -160,7 +160,7 @@ pub struct PiAgentProviderConfig {
 
     /// 自定义模型列表
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub models: Vec<PiAgentModelEntry>,
+    pub models: Vec<PiModelEntry>,
 
     /// 内置模型覆盖
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
@@ -178,7 +178,7 @@ pub struct PiAgentProviderConfig {
 // Core Read/Write Functions
 // ============================================================================
 
-/// 读取 pi-agent models.json 配置
+/// 读取 pi models.json 配置
 ///
 /// 返回完整的配置 JSON 对象。文件不存在时返回默认空结构。
 pub fn read_config() -> Result<Value, AppError> {
@@ -192,10 +192,10 @@ pub fn read_config() -> Result<Value, AppError> {
 
     let content = std::fs::read_to_string(&path).map_err(|e| AppError::io(&path, e))?;
     serde_json::from_str(&content)
-        .map_err(|e| AppError::Config(format!("Failed to parse pi-agent models.json: {e}")))
+        .map_err(|e| AppError::Config(format!("Failed to parse pi models.json: {e}")))
 }
 
-/// 写回 pi-agent models.json
+/// 写回 pi models.json
 ///
 /// 原子写入，确保不损坏现有文件。
 fn write_config(config: &Value) -> Result<(), AppError> {
@@ -271,17 +271,17 @@ pub fn remove_provider(id: &str) -> Result<(), AppError> {
 // ============================================================================
 
 /// 获取所有供应商配置（类型化）
-pub fn get_typed_providers() -> Result<HashMap<String, PiAgentProviderConfig>, AppError> {
+pub fn get_typed_providers() -> Result<HashMap<String, PiProviderConfig>, AppError> {
     let providers = get_providers()?;
     let mut result = HashMap::new();
 
     for (id, value) in providers {
-        match serde_json::from_value::<PiAgentProviderConfig>(value) {
+        match serde_json::from_value::<PiProviderConfig>(value) {
             Ok(config) => {
                 result.insert(id, config);
             }
             Err(e) => {
-                log::warn!("Failed to parse pi-agent provider '{id}': {e}");
+                log::warn!("Failed to parse pi provider '{id}': {e}");
             }
         }
     }
@@ -290,7 +290,7 @@ pub fn get_typed_providers() -> Result<HashMap<String, PiAgentProviderConfig>, A
 }
 
 /// 设置供应商配置（类型化）
-pub fn set_typed_provider(id: &str, config: &PiAgentProviderConfig) -> Result<(), AppError> {
+pub fn set_typed_provider(id: &str, config: &PiProviderConfig) -> Result<(), AppError> {
     let value = serde_json::to_value(config).map_err(|e| AppError::JsonSerialize { source: e })?;
     set_provider(id, value)
 }
@@ -364,14 +364,14 @@ mod tests {
     #[test]
     fn typed_provider_roundtrip() {
         with_test_home(|| {
-            let config = PiAgentProviderConfig {
+            let config = PiProviderConfig {
                 name: Some("Test Provider".to_string()),
                 base_url: Some("https://api.test.com/v1".to_string()),
                 api_key: Some("sk-test".to_string()),
                 api: Some("openai-completions".to_string()),
                 headers: HashMap::new(),
                 compat: None,
-                models: vec![PiAgentModelEntry {
+                models: vec![PiModelEntry {
                     id: "gpt-4".to_string(),
                     name: Some("GPT-4".to_string()),
                     api: None,

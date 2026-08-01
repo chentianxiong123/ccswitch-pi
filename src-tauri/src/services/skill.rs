@@ -535,7 +535,7 @@ impl SkillService {
                     return Ok(custom.join("skills"));
                 }
             }
-            AppType::PiAgent => {}
+            AppType::Pi => {}
         }
 
         // 默认路径：回退到用户主目录下的标准位置
@@ -553,7 +553,7 @@ impl SkillService {
             AppType::OpenCode => home.join(".config").join("opencode").join("skills"),
             AppType::OpenClaw => home.join(".openclaw").join("skills"),
             AppType::Hermes => crate::hermes_config::get_hermes_dir().join("skills"),
-            AppType::PiAgent => home.join(".pi-agent").join("skills"),
+            AppType::Pi => home.join(".pi/agent").join("skills"),
         })
     }
 

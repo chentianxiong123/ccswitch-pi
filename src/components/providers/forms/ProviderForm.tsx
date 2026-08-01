@@ -53,7 +53,7 @@ import {
 import { OpenCodeFormFields } from "./OpenCodeFormFields";
 import { OpenClawFormFields } from "./OpenClawFormFields";
 import { HermesFormFields } from "./HermesFormFields";
-import { PiAgentFormFields } from "./PiAgentFormFields";
+import { PiFormFields } from "./PiFormFields";
 import type { UniversalProviderPreset } from "@/config/universalProviderPresets";
 import {
   applyTemplateValues,
@@ -105,7 +105,7 @@ import {
   useOmoDraftState,
   useOpenclawFormState,
   useHermesFormState,
-  usePiAgentFormState,
+  usePiFormState,
   useCopilotAuth,
   useCodexOauth,
 } from "./hooks";
@@ -120,11 +120,11 @@ import {
   normalizePricingSource,
 } from "./helpers/opencodeFormUtils";
 import { HERMES_DEFAULT_CONFIG } from "./hooks/useHermesFormState";
-import { PI_AGENT_DEFAULT_CONFIG } from "./hooks/usePiAgentFormState";
+import { PI_AGENT_DEFAULT_CONFIG } from "./hooks/usePiFormState";
 import { resolveManagedAccountId } from "@/lib/authBinding";
 import { useOpenClawLiveProviderIds } from "@/hooks/useOpenClaw";
 import { useHermesLiveProviderIds } from "@/hooks/useHermes";
-import { usePiAgentLiveProviderIds } from "@/hooks/usePiAgent";
+import { usePiLiveProviderIds } from "@/hooks/usePi";
 
 type PresetEntry = {
   id: string;
@@ -393,7 +393,7 @@ function ProviderFormFull({
                 ? OPENCLAW_DEFAULT_CONFIG
                 : appId === "hermes"
                   ? HERMES_DEFAULT_CONFIG
-                  : appId === "pi-agent"
+                  : appId === "pi"
                     ? PI_AGENT_DEFAULT_CONFIG
                     : CLAUDE_DEFAULT_CONFIG,
       icon: initialData?.icon ?? "",
@@ -904,7 +904,7 @@ function ProviderFormFull({
     isLoading: isHermesLiveProviderIdsLoading,
   } = useHermesLiveProviderIds(appId === "hermes");
 
-  const piAgentForm = usePiAgentFormState({
+  const piForm = usePiFormState({
     initialData,
     appId,
     providerId,
@@ -912,9 +912,9 @@ function ProviderFormFull({
     getSettingsConfig: () => form.getValues("settingsConfig"),
   });
   const {
-    data: piAgentLiveProviderIds = [],
-    isLoading: isPiAgentLiveProviderIdsLoading,
-  } = usePiAgentLiveProviderIds(appId === "pi-agent");
+    data: piLiveProviderIds = [],
+    isLoading: isPiLiveProviderIdsLoading,
+  } = usePiLiveProviderIds(appId === "pi");
 
   const additiveExistingProviderKeys = useMemo(() => {
     if (appId === "opencode" && !isAnyOmoCategory) {
@@ -948,12 +948,12 @@ function ProviderFormFull({
       );
     }
 
-    if (appId === "pi-agent") {
+    if (appId === "pi") {
       return Array.from(
         new Set(
           [
-            ...piAgentForm.existingPiAgentKeys,
-            ...piAgentLiveProviderIds,
+            ...piForm.existingPiKeys,
+            ...piLiveProviderIds,
           ].filter((key) => key !== providerId),
         ),
       );
@@ -969,8 +969,8 @@ function ProviderFormFull({
     openclawForm.existingOpenclawKeys,
     openclawLiveProviderIds,
     opencodeLiveProviderIds,
-    piAgentForm.existingPiAgentKeys,
-    piAgentLiveProviderIds,
+    piForm.existingPiKeys,
+    piLiveProviderIds,
     providerId,
   ]);
 
@@ -985,8 +985,8 @@ function ProviderFormFull({
     if (appId === "hermes") {
       return isHermesLiveProviderIdsLoading;
     }
-    if (appId === "pi-agent") {
-      return isPiAgentLiveProviderIdsLoading;
+    if (appId === "pi") {
+      return isPiLiveProviderIdsLoading;
     }
     return false;
   }, [
@@ -996,7 +996,7 @@ function ProviderFormFull({
     isHermesLiveProviderIdsLoading,
     isOpenclawLiveProviderIdsLoading,
     isOpencodeLiveProviderIdsLoading,
-    isPiAgentLiveProviderIdsLoading,
+    isPiLiveProviderIdsLoading,
   ]);
 
   const isProviderKeyLocked = useMemo(() => {
@@ -1010,8 +1010,8 @@ function ProviderFormFull({
     if (appId === "hermes") {
       return hermesLiveProviderIds.includes(providerId);
     }
-    if (appId === "pi-agent") {
-      return piAgentLiveProviderIds.includes(providerId);
+    if (appId === "pi") {
+      return piLiveProviderIds.includes(providerId);
     }
     return false;
   }, [
@@ -1021,7 +1021,7 @@ function ProviderFormFull({
     isEditMode,
     openclawLiveProviderIds,
     opencodeLiveProviderIds,
-    piAgentLiveProviderIds,
+    piLiveProviderIds,
     providerId,
   ]);
 
@@ -1173,13 +1173,13 @@ function ProviderFormFull({
       }
     }
 
-    if (appId === "pi-agent") {
-      if (!piAgentForm.piAgentProviderKey.trim()) {
-        toast.error(t("piAgent.form.providerKeyRequired"));
+    if (appId === "pi") {
+      if (!piForm.piProviderKey.trim()) {
+        toast.error(t("pi.form.providerKeyRequired"));
         return;
       }
-      if (!keyPattern.test(piAgentForm.piAgentProviderKey)) {
-        toast.error(t("piAgent.form.providerKeyInvalid"));
+      if (!keyPattern.test(piForm.piProviderKey)) {
+        toast.error(t("pi.form.providerKeyInvalid"));
         return;
       }
       if (isProviderKeyLockStateLoading) {
@@ -1192,9 +1192,9 @@ function ProviderFormFull({
       }
       if (
         !isProviderKeyLocked &&
-        additiveExistingProviderKeys.includes(piAgentForm.piAgentProviderKey)
+        additiveExistingProviderKeys.includes(piForm.piProviderKey)
       ) {
-        toast.error(t("piAgent.form.providerKeyDuplicate"));
+        toast.error(t("pi.form.providerKeyDuplicate"));
         return;
       }
     }
@@ -1443,8 +1443,8 @@ function ProviderFormFull({
       payload.providerKey = openclawForm.openclawProviderKey;
     } else if (appId === "hermes") {
       payload.providerKey = hermesForm.hermesProviderKey;
-    } else if (appId === "pi-agent") {
-      payload.providerKey = piAgentForm.piAgentProviderKey;
+    } else if (appId === "pi") {
+      payload.providerKey = piForm.piProviderKey;
     }
 
     if (isAnyOmoCategory && !payload.presetCategory) {
@@ -1632,7 +1632,7 @@ function ProviderFormFull({
   const shouldShowSpeedTest =
     category !== "official" &&
     category !== "cloud_provider" &&
-    appId !== "pi-agent";
+    appId !== "pi";
 
   const {
     shouldShowApiKeyLink: shouldShowClaudeApiKeyLink,
@@ -1716,12 +1716,12 @@ function ProviderFormFull({
 
   // 使用 API Key 链接 hook (Pi-Agent)
   const {
-    shouldShowApiKeyLink: shouldShowPiAgentApiKeyLink,
-    websiteUrl: piAgentWebsiteUrl,
-    isPartner: isPiAgentPartner,
-    partnerPromotionKey: piAgentPartnerPromotionKey,
+    shouldShowApiKeyLink: shouldShowPiApiKeyLink,
+    websiteUrl: piWebsiteUrl,
+    isPartner: isPiPartner,
+    partnerPromotionKey: piPartnerPromotionKey,
   } = useApiKeyLink({
-    appId: "pi-agent",
+    appId: "pi",
     category,
     selectedPresetId,
     presetEntries,
@@ -2160,23 +2160,23 @@ function ProviderFormFull({
                       </p>
                     )}
                 </div>
-              ) : appId === "pi-agent" ? (
+              ) : appId === "pi" ? (
                 <div className="space-y-2">
-                  <Label htmlFor="pi-agent-key">
-                    {t("piAgent.form.providerKey", {
+                  <Label htmlFor="pi-key">
+                    {t("pi.form.providerKey", {
                       defaultValue: "Provider Key",
                     })}
                     <span className="text-destructive ml-1">*</span>
                   </Label>
                   <Input
-                    id="pi-agent-key"
-                    value={piAgentForm.piAgentProviderKey}
+                    id="pi-key"
+                    value={piForm.piProviderKey}
                     onChange={(e) =>
-                      piAgentForm.setPiAgentProviderKey(
+                      piForm.setPiProviderKey(
                         e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
                       )
                     }
-                    placeholder={t("piAgent.form.providerKeyPlaceholder", {
+                    placeholder={t("pi.form.providerKeyPlaceholder", {
                       defaultValue: "my-provider",
                     })}
                     disabled={
@@ -2184,49 +2184,49 @@ function ProviderFormFull({
                     }
                     className={
                       (additiveExistingProviderKeys.includes(
-                        piAgentForm.piAgentProviderKey,
+                        piForm.piProviderKey,
                       ) &&
                         !isProviderKeyLocked) ||
-                      (piAgentForm.piAgentProviderKey.trim() !== "" &&
+                      (piForm.piProviderKey.trim() !== "" &&
                         !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(
-                          piAgentForm.piAgentProviderKey,
+                          piForm.piProviderKey,
                         ))
                         ? "border-destructive"
                         : ""
                     }
                   />
                   {additiveExistingProviderKeys.includes(
-                    piAgentForm.piAgentProviderKey,
+                    piForm.piProviderKey,
                   ) &&
                     !isProviderKeyLocked && (
                       <p className="text-xs text-destructive">
-                        {t("piAgent.form.providerKeyDuplicate")}
+                        {t("pi.form.providerKeyDuplicate")}
                       </p>
                     )}
-                  {piAgentForm.piAgentProviderKey.trim() !== "" &&
+                  {piForm.piProviderKey.trim() !== "" &&
                     !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(
-                      piAgentForm.piAgentProviderKey,
+                      piForm.piProviderKey,
                     ) && (
                       <p className="text-xs text-destructive">
-                        {t("piAgent.form.providerKeyInvalid")}
+                        {t("pi.form.providerKeyInvalid")}
                       </p>
                     )}
                   {!(
                     additiveExistingProviderKeys.includes(
-                      piAgentForm.piAgentProviderKey,
+                      piForm.piProviderKey,
                     ) && !isProviderKeyLocked
                   ) &&
-                    (piAgentForm.piAgentProviderKey.trim() === "" ||
+                    (piForm.piProviderKey.trim() === "" ||
                       /^[a-z0-9]+(-[a-z0-9]+)*$/.test(
-                        piAgentForm.piAgentProviderKey,
+                        piForm.piProviderKey,
                       )) && (
                       <p className="text-xs text-muted-foreground">
                         {isProviderKeyLocked
-                          ? t("piAgent.form.providerKeyLockedHint", {
+                          ? t("pi.form.providerKeyLockedHint", {
                               defaultValue:
-                                "该供应商已添加到 pi-agent 配置中，标识不可修改",
+                                "该供应商已添加到 pi 配置中，标识不可修改",
                             })
-                          : t("piAgent.form.providerKeyHint", {
+                          : t("pi.form.providerKeyHint", {
                               defaultValue:
                                 "仅支持小写字母、数字和连字符。用作 models.json 中的供应商名称。",
                             })}
@@ -2486,21 +2486,21 @@ function ProviderFormFull({
           )}
 
           {/* Pi-Agent 专属字段 */}
-          {appId === "pi-agent" && (
-            <PiAgentFormFields
-              baseUrl={piAgentForm.piAgentBaseUrl}
-              onBaseUrlChange={piAgentForm.handlePiAgentBaseUrlChange}
-              apiKey={piAgentForm.piAgentApiKey}
-              onApiKeyChange={piAgentForm.handlePiAgentApiKeyChange}
+          {appId === "pi" && (
+            <PiFormFields
+              baseUrl={piForm.piBaseUrl}
+              onBaseUrlChange={piForm.handlePiBaseUrlChange}
+              apiKey={piForm.piApiKey}
+              onApiKeyChange={piForm.handlePiApiKeyChange}
               category={category}
-              shouldShowApiKeyLink={shouldShowPiAgentApiKeyLink}
-              websiteUrl={piAgentWebsiteUrl}
-              isPartner={isPiAgentPartner}
-              partnerPromotionKey={piAgentPartnerPromotionKey}
-              api={piAgentForm.piAgentApi}
-              onApiChange={piAgentForm.handlePiAgentApiChange}
-              models={piAgentForm.piAgentModels}
-              onModelsChange={piAgentForm.handlePiAgentModelsChange}
+              shouldShowApiKeyLink={shouldShowPiApiKeyLink}
+              websiteUrl={piWebsiteUrl}
+              isPartner={isPiPartner}
+              partnerPromotionKey={piPartnerPromotionKey}
+              api={piForm.piApi}
+              onApiChange={piForm.handlePiApiChange}
+              models={piForm.piModels}
+              onModelsChange={piForm.handlePiModelsChange}
             />
           )}
 
@@ -2592,7 +2592,7 @@ function ProviderFormFull({
               </div>
               {settingsConfigErrorField}
             </>
-          ) : appId === "openclaw" || appId === "hermes" || appId === "pi-agent" ? (
+          ) : appId === "openclaw" || appId === "hermes" || appId === "pi" ? (
             <>
               <div className="space-y-2">
                 <Label htmlFor="settingsConfig">
@@ -2608,7 +2608,7 @@ function ProviderFormFull({
   "base_url": "https://api.example.com/v1",
   "api_key": ""
 }`
-                      : appId === "pi-agent"
+                      : appId === "pi"
                         ? `{
   "name": "my-provider",
   "baseUrl": "https://api.example.com/v1",

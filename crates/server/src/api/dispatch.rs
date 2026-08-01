@@ -215,12 +215,12 @@ rpc_business_methods!(
     "set_hermes_memory_enabled",
     "open_hermes_web_ui",
     "launch_hermes_dashboard",
-    "import_pi_agent_providers_from_live",
-    "get_pi_agent_live_provider_ids",
-    "get_pi_agent_live_provider",
-    "set_pi_agent_live_provider",
-    "remove_pi_agent_live_provider",
-    "get_pi_agent_config",
+    "import_pi_providers_from_live",
+    "get_pi_live_provider_ids",
+    "get_pi_live_provider",
+    "set_pi_live_provider",
+    "remove_pi_live_provider",
+    "get_pi_config",
     "scan_openclaw_config_health",
     "get_openclaw_default_model",
     "set_openclaw_default_model",
@@ -2502,43 +2502,43 @@ pub async fn dispatch_command(
             Ok(serde_json::json!(ok))
         }
 
-        "import_pi_agent_providers_from_live" => {
-            let count = cc_switch_core::import_pi_agent_providers_from_live(core)
+        "import_pi_providers_from_live" => {
+            let count = cc_switch_core::import_pi_providers_from_live(core)
                 .map_err(RpcError::app_error)?;
             Ok(serde_json::json!(count))
         }
 
-        "get_pi_agent_live_provider_ids" => {
-            let ids = cc_switch_core::get_pi_agent_live_provider_ids().map_err(RpcError::app_error)?;
+        "get_pi_live_provider_ids" => {
+            let ids = cc_switch_core::get_pi_live_provider_ids().map_err(RpcError::app_error)?;
             Ok(serde_json::json!(ids))
         }
 
-        "get_pi_agent_live_provider" => {
+        "get_pi_live_provider" => {
             let provider_id = get_str_param(params, &["providerId", "provider_id"])?;
-            let provider = cc_switch_core::get_pi_agent_live_provider(provider_id)
+            let provider = cc_switch_core::get_pi_live_provider(provider_id)
                 .map_err(RpcError::app_error)?;
             Ok(serde_json::json!(provider))
         }
 
-        "set_pi_agent_live_provider" => {
+        "set_pi_live_provider" => {
             let provider_id = get_str_param(params, &["providerId", "provider_id"])?;
             let provider_config = params
                 .get("providerConfig")
                 .ok_or_else(|| RpcError::invalid_params("missing 'providerConfig' field"))?
                 .clone();
-            cc_switch_core::set_pi_agent_live_provider(provider_id, provider_config)
+            cc_switch_core::set_pi_live_provider(provider_id, provider_config)
                 .map_err(RpcError::app_error)?;
             Ok(Value::Null)
         }
 
-        "remove_pi_agent_live_provider" => {
+        "remove_pi_live_provider" => {
             let provider_id = get_str_param(params, &["providerId", "provider_id"])?;
-            cc_switch_core::remove_pi_agent_live_provider(provider_id).map_err(RpcError::app_error)?;
+            cc_switch_core::remove_pi_live_provider(provider_id).map_err(RpcError::app_error)?;
             Ok(Value::Null)
         }
 
-        "get_pi_agent_config" => {
-            let config = cc_switch_core::get_pi_agent_config().map_err(RpcError::app_error)?;
+        "get_pi_config" => {
+            let config = cc_switch_core::get_pi_config().map_err(RpcError::app_error)?;
             Ok(config)
         }
 

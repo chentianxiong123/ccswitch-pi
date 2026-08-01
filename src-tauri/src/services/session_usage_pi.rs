@@ -1,4 +1,4 @@
-//! PiAgent 会话日志使用追踪
+//! Pi 会话日志使用追踪
 //!
 //! 从 ~/.pi/agent/sessions/ 下的 JSONL 会话文件中提取 token 使用数据。
 //!
@@ -7,7 +7,7 @@
 //! ~/.pi/agent/sessions/*/*.jsonl → 增量解析 → 去重 → 费用计算 → proxy_request_logs 表
 //! ```
 //!
-//! ## PiAgent Session 格式
+//! ## Pi Session 格式
 //! ```json
 //! {"type":"session","version":3,"id":"uuid","timestamp":"...","cwd":"/path"}
 //! {"type":"message","id":"...","parentId":"...","timestamp":"...",
@@ -20,7 +20,7 @@
 
 use crate::database::{lock_conn, Database};
 use crate::error::AppError;
-use crate::pi_agent_config::get_pi_agent_dir;
+use crate::pi_config::get_pi_dir;
 use crate::proxy::usage::calculator::CostCalculator;
 use crate::proxy::usage::parser::TokenUsage;
 use crate::services::session_usage::{
@@ -34,9 +34,9 @@ use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 use std::time::SystemTime;
 
-/// 从 PiAgent JSONL 中解析出的 assistant 消息使用数据
+/// 从 Pi JSONL 中解析出的 assistant 消息使用数据
 #[derive(Debug)]
-struct PiAgentAssistantUsage {
+struct PiAssistantUsage {
     message_id: String,
     model: String,
     provider: Option<String>,
@@ -49,9 +49,9 @@ struct PiAgentAssistantUsage {
     session_id: Option<String>,
 }
 
-/// 同步 PiAgent 会话日志到使用统计数据库
-pub fn sync_pi_agent_usage(db: &Database) -> Result<SessionSyncResult, AppError> {
-    let sessions_dir = get_pi_agent_dir().join("sessions");
+/// 同步 Pi 会话日志到使用统计数据库
+pub fn sync_pi_usage(db: &Database) -> Result<SessionSyncResult, AppError> {
+    let sessions_dir = get_pi_dir().join("sessions");
     if !sessions_dir.exists() {
         return Ok(SessionSyncResult {
             imported: 0,
@@ -101,7 +101,7 @@ pub fn sync_pi_agent_usage(db: &Database) -> Result<SessionSyncResult, AppError>
 
 /// 收集目录下所有 .jsonl 文件（仅一层子目录）
 ///
-/// PiAgent 的 session 文件结构：
+/// Pi 的 session 文件结构：
 ///   sessions_dir/<path-hash>/<timestamp>_<uuid>.jsonl
 fn collect_jsonl_files(sessions_dir: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
@@ -153,7 +153,7 @@ fn sync_single_file(db: &Database, file_path: &Path) -> Result<(u32, u32), AppEr
     let reader = BufReader::new(file);
 
     let mut line_offset: i64 = 0;
-    let mut messages: HashMap<String, PiAgentAssistantUsage> = HashMap::new();
+    let mut messages: HashMap<String, PiAssistantUsage> = HashMap::new();
     let mut current_session_id: Option<String> = None;
 
     for line_result in reader.lines() {
@@ -221,7 +221,7 @@ fn sync_single_file(db: &Database, file_path: &Path) -> Result<(u32, u32), AppEr
             None => continue,
         };
 
-        let parsed = PiAgentAssistantUsage {
+        let parsed = PiAssistantUsage {
             message_id: msg_id.clone(),
             model: message
                 .get("model")
@@ -300,7 +300,7 @@ fn sync_single_file(db: &Database, file_path: &Path) -> Result<(u32, u32), AppEr
             continue;
         }
 
-        let request_id = format!("pi_agent_session:{}", msg.message_id);
+        let request_id = format!("pi_session:{}", msg.message_id);
 
         match insert_session_log_entry(db, &request_id, msg) {
             Ok(true) => imported += 1,
@@ -318,11 +318,11 @@ fn sync_single_file(db: &Database, file_path: &Path) -> Result<(u32, u32), AppEr
     Ok((imported, skipped))
 }
 
-/// 插入单条 PiAgent 会话日志到 proxy_request_logs
+/// 插入单条 Pi 会话日志到 proxy_request_logs
 fn insert_session_log_entry(
     db: &Database,
     request_id: &str,
-    msg: &PiAgentAssistantUsage,
+    msg: &PiAssistantUsage,
 ) -> Result<bool, AppError> {
     let conn = lock_conn!(db.conn);
 
@@ -342,7 +342,7 @@ fn insert_session_log_entry(
         });
 
     let dedup_key = DedupKey {
-        app_type: "pi-agent",
+        app_type: "pi",
         model: &msg.model,
         input_tokens: msg.input_tokens,
         output_tokens: msg.output_tokens,
@@ -397,8 +397,8 @@ fn insert_session_log_entry(
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24)",
             rusqlite::params![
                 request_id,
-                msg.provider.as_deref().unwrap_or("_pi_agent_session"),
-                "pi-agent",
+                msg.provider.as_deref().unwrap_or("_pi_session"),
+                "pi",
                 msg.model,
                 msg.model,
                 msg.input_tokens,
@@ -415,14 +415,14 @@ fn insert_session_log_entry(
                 200i64,
                 Option::<String>::None,
                 msg.session_id,
-                Some("pi_agent_session"),
+                Some("pi_session"),
                 1i64,
                 "1.0",
                 created_at,
-                "pi_agent_session",
+                "pi_session",
             ],
         )
-        .map_err(|e| AppError::Database(format!("插入 PiAgent 会话日志失败: {e}")))?;
+        .map_err(|e| AppError::Database(format!("插入 Pi 会话日志失败: {e}")))?;
 
     if inserted_rows > 0 {
         crate::usage_events::notify_log_recorded();
@@ -499,9 +499,9 @@ mod tests {
 
     #[test]
     fn test_dedup_by_message_id() {
-        let mut messages: HashMap<String, PiAgentAssistantUsage> = HashMap::new();
+        let mut messages: HashMap<String, PiAssistantUsage> = HashMap::new();
 
-        let intermediate = PiAgentAssistantUsage {
+        let intermediate = PiAssistantUsage {
             message_id: "msg_1".to_string(),
             model: "claude-opus-4-8".to_string(),
             provider: Some("anthropic".to_string()),
@@ -515,7 +515,7 @@ mod tests {
         };
         messages.insert("msg_1".to_string(), intermediate);
 
-        let final_entry = PiAgentAssistantUsage {
+        let final_entry = PiAssistantUsage {
             message_id: "msg_1".to_string(),
             model: "claude-opus-4-8".to_string(),
             provider: Some("anthropic".to_string()),
@@ -550,7 +550,7 @@ mod tests {
     }
 
     #[test]
-    fn test_insert_pi_agent_session_skips_matching_proxy_log() -> Result<(), AppError> {
+    fn test_insert_pi_session_skips_matching_proxy_log() -> Result<(), AppError> {
         let db = Database::memory()?;
         {
             let conn = lock_conn!(db.conn);
@@ -561,9 +561,9 @@ mod tests {
                     total_cost_usd, latency_ms, status_code, created_at, data_source
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                 rusqlite::params![
-                    "pi_agent_session:msg_1",
+                    "pi_session:msg_1",
                     "anthropic",
-                    "pi-agent",
+                    "pi",
                     "claude-opus-4-8",
                     "claude-opus-4-8",
                     100,
@@ -574,12 +574,12 @@ mod tests {
                     100,
                     200,
                     1000,
-                    "pi_agent_session"
+                    "pi_session"
                 ],
             )?;
         }
 
-        let msg = PiAgentAssistantUsage {
+        let msg = PiAssistantUsage {
             message_id: "msg_1".to_string(),
             model: "claude-opus-4-8".to_string(),
             provider: Some("anthropic".to_string()),
@@ -592,7 +592,7 @@ mod tests {
             session_id: Some("session-1".to_string()),
         };
 
-        let inserted = insert_session_log_entry(&db, "pi_agent_session:msg_1", &msg)?;
+        let inserted = insert_session_log_entry(&db, "pi_session:msg_1", &msg)?;
         assert!(!inserted);
 
         let conn = lock_conn!(db.conn);

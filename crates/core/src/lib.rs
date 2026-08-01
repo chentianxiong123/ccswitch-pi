@@ -576,33 +576,33 @@ pub fn launch_hermes_dashboard() -> Result<bool, String> {
     Ok(true)
 }
 
-pub fn import_pi_agent_providers_from_live(ctx: &CoreContext) -> Result<usize, String> {
-    cc_switch::import_pi_agent_providers_from_live(ctx.app_state()).map_err(|e| e.to_string())
+pub fn import_pi_providers_from_live(ctx: &CoreContext) -> Result<usize, String> {
+    cc_switch::import_pi_providers_from_live(ctx.app_state()).map_err(|e| e.to_string())
 }
 
-pub fn get_pi_agent_live_provider_ids() -> Result<Vec<String>, String> {
-    cc_switch::pi_agent_config::get_providers()
+pub fn get_pi_live_provider_ids() -> Result<Vec<String>, String> {
+    cc_switch::pi_config::get_providers()
         .map(|providers| providers.keys().cloned().collect())
         .map_err(|e| e.to_string())
 }
 
-pub fn get_pi_agent_live_provider(provider_id: &str) -> Result<Option<serde_json::Value>, String> {
-    cc_switch::pi_agent_config::get_provider(provider_id).map_err(|e| e.to_string())
+pub fn get_pi_live_provider(provider_id: &str) -> Result<Option<serde_json::Value>, String> {
+    cc_switch::pi_config::get_provider(provider_id).map_err(|e| e.to_string())
 }
 
-pub fn set_pi_agent_live_provider(
+pub fn set_pi_live_provider(
     provider_id: &str,
     provider_config: serde_json::Value,
 ) -> Result<(), String> {
-    cc_switch::pi_agent_config::set_provider(provider_id, provider_config).map_err(|e| e.to_string())
+    cc_switch::pi_config::set_provider(provider_id, provider_config).map_err(|e| e.to_string())
 }
 
-pub fn remove_pi_agent_live_provider(provider_id: &str) -> Result<(), String> {
-    cc_switch::pi_agent_config::remove_provider(provider_id).map_err(|e| e.to_string())
+pub fn remove_pi_live_provider(provider_id: &str) -> Result<(), String> {
+    cc_switch::pi_config::remove_provider(provider_id).map_err(|e| e.to_string())
 }
 
-pub fn get_pi_agent_config() -> Result<serde_json::Value, String> {
-    cc_switch::pi_agent_config::read_config().map_err(|e| e.to_string())
+pub fn get_pi_config() -> Result<serde_json::Value, String> {
+    cc_switch::pi_config::read_config().map_err(|e| e.to_string())
 }
 
 pub async fn auth_start_login(
@@ -1748,6 +1748,13 @@ pub fn get_config_status(app: &str) -> Result<ConfigStatus, String> {
             exists: false,
             path: String::new(),
         },
+        AppType::Pi => {
+            let config_path = cc_switch::pi_config::get_models_path();
+            ConfigStatus {
+                exists: config_path.exists(),
+                path: cc_switch::pi_config::get_pi_dir().to_string_lossy().to_string(),
+            }
+        }
     };
 
     Ok(status)
@@ -1788,6 +1795,7 @@ pub fn get_config_dir(app: &str) -> Result<String, String> {
         AppType::ClaudeDesktop | AppType::Hermes => {
             return Err(format!("配置目录不适用于 {app}"));
         }
+        AppType::Pi => cc_switch::pi_config::get_pi_dir(),
     };
     Ok(dir.to_string_lossy().to_string())
 }

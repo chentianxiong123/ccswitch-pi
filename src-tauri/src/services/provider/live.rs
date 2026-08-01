@@ -186,7 +186,7 @@ pub(crate) fn provider_exists_in_live_config(
             .map(|providers| providers.contains_key(provider_id)),
         AppType::Hermes => crate::hermes_config::get_providers()
             .map(|providers| providers.contains_key(provider_id)),
-        AppType::PiAgent => crate::pi_agent_config::get_providers()
+        AppType::Pi => crate::pi_config::get_providers()
             .map(|providers| providers.contains_key(provider_id)),
         _ => Ok(false),
     }
@@ -525,7 +525,7 @@ fn settings_contain_common_config(app_type: &AppType, settings: &Value, snippet:
             }
             _ => false,
         },
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent | AppType::ClaudeDesktop => false,
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::Pi | AppType::ClaudeDesktop => false,
     }
 }
 
@@ -595,7 +595,7 @@ pub(crate) fn remove_common_config_from_settings(
             }
             Ok(result)
         }
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent | AppType::ClaudeDesktop => {
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::Pi | AppType::ClaudeDesktop => {
             Ok(settings.clone())
         }
     }
@@ -652,7 +652,7 @@ fn apply_common_config_to_settings(
             }
             Ok(result)
         }
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent | AppType::ClaudeDesktop => {
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::Pi | AppType::ClaudeDesktop => {
             Ok(settings.clone())
         }
     }
@@ -1143,9 +1143,9 @@ pub(crate) fn write_live_snapshot(app_type: &AppType, provider: &Provider) -> Re
             crate::hermes_config::set_provider(&provider.id, provider.settings_config.clone())?;
             log::debug!("Hermes provider '{}' written to live config", provider.id);
         }
-        AppType::PiAgent => {
-            crate::pi_agent_config::set_provider(&provider.id, provider.settings_config.clone())?;
-            log::debug!("PiAgent provider '{}' written to live config", provider.id);
+        AppType::Pi => {
+            crate::pi_config::set_provider(&provider.id, provider.settings_config.clone())?;
+            log::debug!("Pi provider '{}' written to live config", provider.id);
         }
     }
     Ok(())
@@ -1401,13 +1401,13 @@ pub fn read_live_settings(app_type: AppType) -> Result<Value, AppError> {
             let config = crate::hermes_config::yaml_to_json(&yaml_config)?;
             Ok(config)
         }
-        AppType::PiAgent => {
-            let config_path = dirs::home_dir().unwrap().join(".pi-agent").join("config.json");
+        AppType::Pi => {
+            let config_path = dirs::home_dir().unwrap().join(".pi/agent").join("config.json");
             if !config_path.exists() {
                 return Err(AppError::localized(
-                    "pi_agent.config.missing",
-                    "PiAgent 配置文件不存在",
-                    "PiAgent configuration file not found",
+                    "pi.config.missing",
+                    "Pi 配置文件不存在",
+                    "Pi configuration file not found",
                 ));
             }
             let config = read_json_file::<Value>(&config_path)?;
@@ -1506,8 +1506,8 @@ pub fn import_default_config(state: &AppState, app_type: AppType) -> Result<bool
                 "config": config_obj
             })
         }
-        // OpenCode, OpenClaw, Hermes and PiAgent use additive mode and are handled by early return above
-        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::PiAgent => {
+        // OpenCode, OpenClaw, Hermes and Pi use additive mode and are handled by early return above
+        AppType::OpenCode | AppType::OpenClaw | AppType::Hermes | AppType::Pi => {
             unreachable!("additive mode apps are handled by early return")
         }
     };
@@ -1921,17 +1921,17 @@ pub fn remove_hermes_provider_from_live(provider_id: &str) -> Result<(), AppErro
     Ok(())
 }
 
-pub fn import_pi_agent_providers_from_live(state: &AppState) -> Result<usize, AppError> {
-    use crate::pi_agent_config;
+pub fn import_pi_providers_from_live(state: &AppState) -> Result<usize, AppError> {
+    use crate::pi_config;
 
-    let providers = pi_agent_config::get_typed_providers()?;
+    let providers = pi_config::get_typed_providers()?;
     if providers.is_empty() {
         return Ok(0);
     }
 
     let mut imported = 0;
     let mut updated = 0;
-    let existing_ids = state.db.get_provider_ids("pi-agent")?;
+    let existing_ids = state.db.get_provider_ids("pi")?;
 
     for (id, config) in providers {
         // Validate: skip entries with empty id
@@ -1950,12 +1950,12 @@ pub fn import_pi_agent_providers_from_live(state: &AppState) -> Result<usize, Ap
         };
 
         if existing_ids.contains(&id) {
-            match state.db.get_provider_by_id(&id, "pi-agent") {
+            match state.db.get_provider_by_id(&id, "pi") {
                 Ok(Some(existing)) => {
                     if existing.settings_config != settings_config {
                         let mut provider = existing;
                         provider.settings_config = settings_config;
-                        if let Err(e) = state.db.save_provider("pi-agent", &provider) {
+                        if let Err(e) = state.db.save_provider("pi", &provider) {
                             log::warn!(
                                 "Failed to update Pi-Agent provider '{id}' from live config: {e}"
                             );
@@ -1988,7 +1988,7 @@ pub fn import_pi_agent_providers_from_live(state: &AppState) -> Result<usize, Ap
         });
 
         // Save to database
-        if let Err(e) = state.db.save_provider("pi-agent", &provider) {
+        if let Err(e) = state.db.save_provider("pi", &provider) {
             log::warn!("Failed to import Pi-Agent provider '{id}': {e}");
             continue;
         }
@@ -2000,20 +2000,20 @@ pub fn import_pi_agent_providers_from_live(state: &AppState) -> Result<usize, Ap
     Ok(imported + updated)
 }
 
-/// Remove a pi-agent provider from live config
+/// Remove a pi provider from live config
 ///
 /// This removes a specific provider from ~/.pi/agent/models.json
 /// without affecting other providers in the file.
-pub fn remove_pi_agent_provider_from_live(provider_id: &str) -> Result<(), AppError> {
-    use crate::pi_agent_config;
+pub fn remove_pi_provider_from_live(provider_id: &str) -> Result<(), AppError> {
+    use crate::pi_config;
 
-    // Check if pi-agent config directory exists
-    if !pi_agent_config::get_pi_agent_dir().exists() {
+    // Check if pi config directory exists
+    if !pi_config::get_pi_dir().exists() {
         log::debug!("Pi-Agent config directory doesn't exist, skipping removal of '{provider_id}'");
         return Ok(());
     }
 
-    pi_agent_config::remove_provider(provider_id)?;
+    pi_config::remove_provider(provider_id)?;
     log::info!("Pi-Agent provider '{provider_id}' removed from live config");
 
     Ok(())

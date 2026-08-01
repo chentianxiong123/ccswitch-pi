@@ -20,7 +20,7 @@ interface DirectorySettingsProps {
   opencodeDir?: string;
   openclawDir?: string;
   hermesDir?: string;
-  piAgentDir?: string;
+  piDir?: string;
   onDirectoryChange: (app: DirectoryAppId, value?: string) => void;
   onBrowseDirectory: (app: DirectoryAppId) => Promise<void>;
   onResetDirectory: (app: DirectoryAppId) => Promise<void>;
@@ -38,7 +38,7 @@ export function DirectorySettings({
   opencodeDir,
   openclawDir,
   hermesDir,
-  piAgentDir,
+  piDir,
   onDirectoryChange,
   onBrowseDirectory,
   onResetDirectory,
@@ -162,14 +162,14 @@ export function DirectorySettings({
         />
 
         <DirectoryInput
-          label={t("settings.piAgentConfigDir")}
+          label={t("settings.piConfigDir")}
           description={undefined}
-          value={piAgentDir}
-          resolvedValue={resolvedDirs["pi-agent"]}
-          placeholder={t("settings.browsePlaceholderPiAgent")}
-          onChange={(val) => onDirectoryChange("pi-agent", val)}
-          onBrowse={() => onBrowseDirectory("pi-agent")}
-          onReset={() => onResetDirectory("pi-agent")}
+          value={piDir}
+          resolvedValue={resolvedDirs["pi"]}
+          placeholder={t("settings.browsePlaceholderPi")}
+          onChange={(val) => onDirectoryChange("pi", val)}
+          onBrowse={() => onBrowseDirectory("pi")}
+          onReset={() => onResetDirectory("pi")}
         />
       </section>
     </div>

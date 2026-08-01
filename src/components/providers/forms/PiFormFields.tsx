@@ -46,9 +46,9 @@ import {
 } from "@/lib/api/model-fetch";
 import type { ProviderCategory } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { PiAgentApiMode, PiAgentModel } from "./hooks/usePiAgentFormState";
+import type { PiApiMode, PiModel } from "./hooks/usePiFormState";
 
-export interface PiAgentFormFieldsProps {
+export interface PiFormFieldsProps {
   baseUrl: string;
   onBaseUrlChange: (value: string) => void;
   apiKey: string;
@@ -58,18 +58,18 @@ export interface PiAgentFormFieldsProps {
   websiteUrl: string;
   isPartner?: boolean;
   partnerPromotionKey?: string;
-  api: PiAgentApiMode;
-  onApiChange: (api: PiAgentApiMode) => void;
-  models: PiAgentModel[];
-  onModelsChange: (models: PiAgentModel[]) => void;
+  api: PiApiMode;
+  onApiChange: (api: PiApiMode) => void;
+  models: PiModel[];
+  onModelsChange: (models: PiModel[]) => void;
 }
 
 type BaseUrlErrorCode = "empty" | "invalid" | "scheme";
 
 const BASE_URL_ERROR_I18N_KEY: Record<BaseUrlErrorCode, string> = {
-  empty: "piAgent.form.baseUrlRequired",
-  scheme: "piAgent.form.baseUrlScheme",
-  invalid: "piAgent.form.baseUrlInvalid",
+  empty: "pi.form.baseUrlRequired",
+  scheme: "pi.form.baseUrlScheme",
+  invalid: "pi.form.baseUrlInvalid",
 };
 
 const TEMPLATE_TOKEN_RE = /\$\{[^}]+\}/g;
@@ -127,19 +127,19 @@ function AdvancedSection({
   );
 }
 
-interface PiAgentCostEditorProps {
-  cost: PiAgentModel["cost"];
-  onChange: (cost: PiAgentModel["cost"]) => void;
+interface PiCostEditorProps {
+  cost: PiModel["cost"];
+  onChange: (cost: PiModel["cost"]) => void;
 }
 
-function PiAgentCostEditor({ cost, onChange }: PiAgentCostEditorProps) {
+function PiCostEditor({ cost, onChange }: PiCostEditorProps) {
   const { t } = useTranslation();
 
   const costFields = [
-    { key: "input", label: "piAgent.form.costInput" },
-    { key: "output", label: "piAgent.form.costOutput" },
-    { key: "cacheRead", label: "piAgent.form.costCacheRead" },
-    { key: "cacheWrite", label: "piAgent.form.costCacheWrite" },
+    { key: "input", label: "pi.form.costInput" },
+    { key: "output", label: "pi.form.costOutput" },
+    { key: "cacheRead", label: "pi.form.costCacheRead" },
+    { key: "cacheWrite", label: "pi.form.costCacheWrite" },
   ] as const;
 
   return (
@@ -170,7 +170,7 @@ function PiAgentCostEditor({ cost, onChange }: PiAgentCostEditorProps) {
   );
 }
 
-export function PiAgentFormFields({
+export function PiFormFields({
   baseUrl,
   onBaseUrlChange,
   apiKey,
@@ -184,7 +184,7 @@ export function PiAgentFormFields({
   onApiChange,
   models,
   onModelsChange,
-}: PiAgentFormFieldsProps) {
+}: PiFormFieldsProps) {
   const { t } = useTranslation();
   const [expandedModels, setExpandedModels] = useState<Record<number, boolean>>(
     {},
@@ -284,7 +284,7 @@ export function PiAgentFormFields({
 
   const handleModelChange = (
     index: number,
-    field: keyof PiAgentModel,
+    field: keyof PiModel,
     value: unknown,
   ) => {
     const next = [...models];
@@ -292,10 +292,10 @@ export function PiAgentFormFields({
     onModelsChange(next);
   };
 
-  const piAgentApiOptions = useMemo(
+  const piApiOptions = useMemo(
     () => [
-      { value: "openai-completions", label: "piAgent.form.apiModeOpenAI" },
-      { value: "anthropic-messages", label: "piAgent.form.apiModeAnthropic" },
+      { value: "openai-completions", label: "pi.form.apiModeOpenAI" },
+      { value: "anthropic-messages", label: "pi.form.apiModeAnthropic" },
     ],
     [],
   );
@@ -303,18 +303,18 @@ export function PiAgentFormFields({
   return (
     <>
       <div className="space-y-2">
-        <FormLabel htmlFor="pi-agent-api">
-          {t("piAgent.form.api", { defaultValue: "API 类型" })}
+        <FormLabel htmlFor="pi-api">
+          {t("pi.form.api", { defaultValue: "API 类型" })}
         </FormLabel>
         <Select
           value={api}
-          onValueChange={(v) => onApiChange(v as PiAgentApiMode)}
+          onValueChange={(v) => onApiChange(v as PiApiMode)}
         >
-          <SelectTrigger id="pi-agent-api">
+          <SelectTrigger id="pi-api">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {piAgentApiOptions.map((opt) => (
+            {piApiOptions.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 {t(opt.label)}
               </SelectItem>
@@ -322,18 +322,18 @@ export function PiAgentFormFields({
           </SelectContent>
         </Select>
         <p className="text-xs text-muted-foreground">
-          {t("piAgent.form.apiHint", {
+          {t("pi.form.apiHint", {
             defaultValue: "供应商 API 协议。请根据端点选择正确的协议。",
           })}
         </p>
       </div>
 
       <div className="space-y-2">
-        <FormLabel htmlFor="pi-agent-baseurl">
-          {t("piAgent.form.baseUrl", { defaultValue: "API 端点" })}
+        <FormLabel htmlFor="pi-baseurl">
+          {t("pi.form.baseUrl", { defaultValue: "API 端点" })}
         </FormLabel>
         <Input
-          id="pi-agent-baseurl"
+          id="pi-baseurl"
           value={baseUrl}
           onChange={(e) => onBaseUrlChange(e.target.value)}
           onBlur={() => setBaseUrlTouched(true)}
@@ -349,7 +349,7 @@ export function PiAgentFormFields({
           <p className="text-xs text-destructive">{baseUrlErrorMessage}</p>
         ) : (
           <p className="text-xs text-muted-foreground">
-            {t("piAgent.form.baseUrlHint", {
+            {t("pi.form.baseUrlHint", {
               defaultValue: "供应商的 API 端点地址。",
             })}
           </p>
@@ -369,7 +369,7 @@ export function PiAgentFormFields({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <FormLabel>
-            {t("piAgent.form.models", { defaultValue: "模型列表" })}
+            {t("pi.form.models", { defaultValue: "模型列表" })}
           </FormLabel>
           <div className="flex gap-1">
             <Button
@@ -395,14 +395,14 @@ export function PiAgentFormFields({
               className="h-7 gap-1"
             >
               <Plus className="h-3.5 w-3.5" />
-              {t("piAgent.form.addModel", { defaultValue: "添加模型" })}
+              {t("pi.form.addModel", { defaultValue: "添加模型" })}
             </Button>
           </div>
         </div>
 
         {models.length === 0 ? (
           <p className="text-sm text-muted-foreground py-2">
-            {t("piAgent.form.noModels", {
+            {t("pi.form.noModels", {
               defaultValue: "暂无模型配置。",
             })}
           </p>
@@ -422,10 +422,10 @@ export function PiAgentFormFields({
                     }`}
                   >
                     {index === 0
-                      ? t("piAgent.form.primaryModel", {
+                      ? t("pi.form.primaryModel", {
                           defaultValue: "默认模型",
                         })
-                      : t("piAgent.form.fallbackModel", {
+                      : t("pi.form.fallbackModel", {
                           defaultValue: "备选模型",
                         })}
                   </span>
@@ -434,7 +434,7 @@ export function PiAgentFormFields({
                 <div className="flex items-center gap-2">
                   <div className="flex-1 space-y-1">
                     <label className="text-xs text-muted-foreground">
-                      {t("piAgent.form.modelId", { defaultValue: "模型 ID" })}
+                      {t("pi.form.modelId", { defaultValue: "模型 ID" })}
                     </label>
                     <div className="flex gap-1">
                       <Input
@@ -442,7 +442,7 @@ export function PiAgentFormFields({
                         onChange={(e) =>
                           handleModelChange(index, "id", e.target.value)
                         }
-                        placeholder={t("piAgent.form.modelIdPlaceholder", {
+                        placeholder={t("pi.form.modelIdPlaceholder", {
                           defaultValue: "anthropic/claude-opus-4-8",
                         })}
                         className="flex-1"
@@ -489,7 +489,7 @@ export function PiAgentFormFields({
                   </div>
                   <div className="flex-1 space-y-1">
                     <label className="text-xs text-muted-foreground">
-                      {t("piAgent.form.modelName", {
+                      {t("pi.form.modelName", {
                         defaultValue: "显示名称",
                       })}
                     </label>
@@ -498,7 +498,7 @@ export function PiAgentFormFields({
                       onChange={(e) =>
                         handleModelChange(index, "name", e.target.value)
                       }
-                      placeholder={t("piAgent.form.modelNamePlaceholder", {
+                      placeholder={t("pi.form.modelNamePlaceholder", {
                         defaultValue: "Claude Opus 4.8",
                       })}
                     />
@@ -517,12 +517,12 @@ export function PiAgentFormFields({
                 <AdvancedSection
                   open={expandedModels[index] ?? false}
                   onOpenChange={() => toggleModelAdvanced(index)}
-                  labelKey="piAgent.form.advancedOptions"
+                  labelKey="pi.form.advancedOptions"
                 >
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">
-                        {t("piAgent.form.contextWindow", {
+                        {t("pi.form.contextWindow", {
                           defaultValue: "上下文长度",
                         })}
                       </label>
@@ -543,7 +543,7 @@ export function PiAgentFormFields({
                     </div>
                     <div className="space-y-1">
                       <label className="text-xs text-muted-foreground">
-                        {t("piAgent.form.maxTokens", {
+                        {t("pi.form.maxTokens", {
                           defaultValue: "最大输出 Token",
                         })}
                       </label>
@@ -576,7 +576,7 @@ export function PiAgentFormFields({
                       htmlFor={`reasoning-${modelKeys[index]}`}
                       className="text-xs text-muted-foreground cursor-pointer"
                     >
-                      {t("piAgent.form.reasoning", {
+                      {t("pi.form.reasoning", {
                         defaultValue: "支持推理（Reasoning）",
                       })}
                     </label>
@@ -584,11 +584,11 @@ export function PiAgentFormFields({
 
                   <div className="space-y-1">
                     <label className="text-xs text-muted-foreground">
-                      {t("piAgent.form.cost", {
+                      {t("pi.form.cost", {
                         defaultValue: "费用（每百万 Token）",
                       })}
                     </label>
-                    <PiAgentCostEditor
+                    <PiCostEditor
                       cost={model.cost}
                       onChange={(cost) =>
                         handleModelChange(index, "cost", cost)
@@ -602,7 +602,7 @@ export function PiAgentFormFields({
         )}
 
         <p className="text-xs text-muted-foreground">
-          {t("piAgent.form.modelsHint", {
+          {t("pi.form.modelsHint", {
             defaultValue: "第一个模型会作为默认模型。",
           })}
         </p>
