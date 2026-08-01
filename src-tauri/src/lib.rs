@@ -269,16 +269,40 @@ pub fn launch_terminal_command(command_line: &str, label: &str) -> Result<(), St
 }
 
 pub fn sync_all_session_usage(db: &Database) -> Result<SessionSyncResult, AppError> {
-    let mut result = services::session_usage::sync_claude_session_logs(db)?;
+    let claude_result = services::session_usage::sync_claude_session_logs(db)?;
+    let mut result = claude_result.clone();
+    result.sources.push(session_source(
+        "claude",
+        &claude_result.imported,
+        &claude_result.skipped,
+        &claude_result.files_scanned,
+        &claude_result.errors,
+    ));
 
     match services::session_usage_codex::sync_codex_usage(db) {
         Ok(codex_result) => {
             result.imported += codex_result.imported;
             result.skipped += codex_result.skipped;
             result.files_scanned += codex_result.files_scanned;
+            result.sources.push(session_source(
+                "codex",
+                &codex_result.imported,
+                &codex_result.skipped,
+                &codex_result.files_scanned,
+                &codex_result.errors,
+            ));
             result.errors.extend(codex_result.errors);
         }
-        Err(e) => result.errors.push(format!("Codex 同步失败: {e}")),
+        Err(e) => {
+            result.errors.push(format!("Codex 同步失败: {e}"));
+            result.sources.push(session_source(
+                "codex",
+                &0,
+                &0,
+                &0,
+                &[format!("Codex 同步失败: {e}")],
+            ));
+        }
     }
 
     match services::session_usage_gemini::sync_gemini_usage(db) {
@@ -286,9 +310,25 @@ pub fn sync_all_session_usage(db: &Database) -> Result<SessionSyncResult, AppErr
             result.imported += gemini_result.imported;
             result.skipped += gemini_result.skipped;
             result.files_scanned += gemini_result.files_scanned;
+            result.sources.push(session_source(
+                "gemini",
+                &gemini_result.imported,
+                &gemini_result.skipped,
+                &gemini_result.files_scanned,
+                &gemini_result.errors,
+            ));
             result.errors.extend(gemini_result.errors);
         }
-        Err(e) => result.errors.push(format!("Gemini 同步失败: {e}")),
+        Err(e) => {
+            result.errors.push(format!("Gemini 同步失败: {e}"));
+            result.sources.push(session_source(
+                "gemini",
+                &0,
+                &0,
+                &0,
+                &[format!("Gemini 同步失败: {e}")],
+            ));
+        }
     }
 
     match services::session_usage_pi::sync_pi_usage(db) {
@@ -296,9 +336,25 @@ pub fn sync_all_session_usage(db: &Database) -> Result<SessionSyncResult, AppErr
             result.imported += pi_result.imported;
             result.skipped += pi_result.skipped;
             result.files_scanned += pi_result.files_scanned;
+            result.sources.push(session_source(
+                "pi",
+                &pi_result.imported,
+                &pi_result.skipped,
+                &pi_result.files_scanned,
+                &pi_result.errors,
+            ));
             result.errors.extend(pi_result.errors);
         }
-        Err(e) => result.errors.push(format!("Pi 同步失败: {e}")),
+        Err(e) => {
+            result.errors.push(format!("Pi 同步失败: {e}"));
+            result.sources.push(session_source(
+                "pi",
+                &0,
+                &0,
+                &0,
+                &[format!("Pi 同步失败: {e}")],
+            ));
+        }
     }
 
     match services::session_usage_opencode::sync_opencode_usage(db) {
@@ -306,12 +362,44 @@ pub fn sync_all_session_usage(db: &Database) -> Result<SessionSyncResult, AppErr
             result.imported += opencode_result.imported;
             result.skipped += opencode_result.skipped;
             result.files_scanned += opencode_result.files_scanned;
+            result.sources.push(session_source(
+                "opencode",
+                &opencode_result.imported,
+                &opencode_result.skipped,
+                &opencode_result.files_scanned,
+                &opencode_result.errors,
+            ));
             result.errors.extend(opencode_result.errors);
         }
-        Err(e) => result.errors.push(format!("OpenCode 同步失败: {e}")),
+        Err(e) => {
+            result.errors.push(format!("OpenCode 同步失败: {e}"));
+            result.sources.push(session_source(
+                "opencode",
+                &0,
+                &0,
+                &0,
+                &[format!("OpenCode 同步失败: {e}")],
+            ));
+        }
     }
 
     Ok(result)
+}
+
+fn session_source(
+    app: &str,
+    imported: &u32,
+    skipped: &u32,
+    files_scanned: &u32,
+    errors: &[String],
+) -> services::session_usage::SessionSyncSource {
+    services::session_usage::SessionSyncSource {
+        app: app.to_string(),
+        imported: *imported,
+        skipped: *skipped,
+        files_scanned: *files_scanned,
+        errors: errors.to_vec(),
+    }
 }
 
 pub fn get_usage_data_sources_summary(db: &Database) -> Result<Vec<DataSourceSummary>, AppError> {

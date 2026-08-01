@@ -51,6 +51,7 @@ pub fn sync_opencode_usage(db: &Database) -> Result<SessionSyncResult, AppError>
             skipped: 0,
             files_scanned: 0,
             errors: vec![],
+            sources: vec![],
         });
     }
 
@@ -78,6 +79,7 @@ pub fn sync_opencode_usage(db: &Database) -> Result<SessionSyncResult, AppError>
             skipped: 0,
             files_scanned: 1,
             errors: vec![],
+            sources: vec![],
         });
     }
 
@@ -104,6 +106,7 @@ pub fn sync_opencode_usage(db: &Database) -> Result<SessionSyncResult, AppError>
         skipped: 0,
         files_scanned: 1,
         errors: vec![],
+        sources: vec![],
     };
     let mut has_sync_errors = false;
 

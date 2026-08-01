@@ -41,6 +41,16 @@ export interface SessionSyncResult {
   skipped: number;
   filesScanned: number;
   errors: string[];
+  /** 每个来源的同步明细（claude / codex / gemini / pi / opencode） */
+  sources?: SessionSyncSource[];
+}
+
+export interface SessionSyncSource {
+  app: string;
+  imported: number;
+  skipped: number;
+  filesScanned: number;
+  errors: string[];
 }
 
 export interface DataSourceSummary {

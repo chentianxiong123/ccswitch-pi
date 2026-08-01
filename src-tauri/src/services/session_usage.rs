@@ -32,6 +32,20 @@ pub struct SessionSyncResult {
     pub skipped: u32,
     pub files_scanned: u32,
     pub errors: Vec<String>,
+    /// 每个来源的同步明细（claude / codex / gemini / pi / opencode）
+    #[serde(default)]
+    pub sources: Vec<SessionSyncSource>,
+}
+
+/// 单个来源的同步明细
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionSyncSource {
+    pub app: String,
+    pub imported: u32,
+    pub skipped: u32,
+    pub files_scanned: u32,
+    pub errors: Vec<String>,
 }
 
 /// 数据来源分布
@@ -66,6 +80,7 @@ pub fn sync_claude_session_logs(db: &Database) -> Result<SessionSyncResult, AppE
             skipped: 0,
             files_scanned: 0,
             errors: vec![],
+            sources: vec![],
         });
     }
 
@@ -74,6 +89,7 @@ pub fn sync_claude_session_logs(db: &Database) -> Result<SessionSyncResult, AppE
         skipped: 0,
         files_scanned: 0,
         errors: vec![],
+        sources: vec![],
     };
 
     // 收集所有 .jsonl 文件

@@ -43,6 +43,7 @@ import { getLocaleFromLanguage } from "./format";
 import { getUsageRangePresetLabel, resolveUsageRange } from "@/lib/usageRange";
 import { UsageDateRangePicker } from "./UsageDateRangePicker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DataSourceBar } from "./DataSourceBar";
 
 const APP_FILTER_OPTIONS: AppTypeFilter[] = ["all", ...KNOWN_APP_TYPES];
 
@@ -338,6 +339,8 @@ export function UsageDashboard({
         model={model}
         refreshIntervalMs={refreshIntervalMs}
       />
+
+      <DataSourceBar refreshIntervalMs={refreshIntervalMs} />
 
       <UsageTrendChart
         range={range}
