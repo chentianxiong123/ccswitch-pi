@@ -49,7 +49,7 @@ export interface ProxyTakeoverStatus {
   opencode: boolean;
   openclaw: boolean;
   hermes: boolean;
-  "pi-agent"?: boolean;
+  "pi"?: boolean;
 }
 
 export interface ProviderHealth {

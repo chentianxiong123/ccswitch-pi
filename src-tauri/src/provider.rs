@@ -169,8 +169,8 @@ impl Provider {
                 str_at(settings.get("base_url")),
                 str_at(settings.get("api_key")),
             ),
-            // PiAgent (models.json) flattens credentials at the top level, camelCase.
-            AppType::PiAgent => (
+            // Pi (models.json) flattens credentials at the top level, camelCase.
+            AppType::Pi => (
                 str_at(settings.get("baseUrl")),
                 str_at(settings.get("apiKey")),
             ),

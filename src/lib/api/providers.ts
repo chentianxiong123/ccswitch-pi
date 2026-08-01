@@ -198,25 +198,25 @@ export const providersApi = {
     return await invoke("import_hermes_providers_from_live");
   },
 
-  async getPiAgentLiveProviderIds(): Promise<string[]> {
-    return await invoke("get_pi_agent_live_provider_ids");
+  async getPiLiveProviderIds(): Promise<string[]> {
+    return await invoke("get_pi_live_provider_ids");
   },
 
-  async getPiAgentLiveProvider(
+  async getPiLiveProvider(
     providerId: string,
   ): Promise<Record<string, unknown> | null> {
-    return await invoke("get_pi_agent_live_provider", { providerId });
+    return await invoke("get_pi_live_provider", { providerId });
   },
 
-  async setPiAgentLiveProvider(
+  async setPiLiveProvider(
     providerId: string,
     providerConfig: Record<string, unknown>,
   ): Promise<void> {
-    return await invoke("set_pi_agent_live_provider", { providerId, providerConfig });
+    return await invoke("set_pi_live_provider", { providerId, providerConfig });
   },
 
-  async removePiAgentLiveProvider(providerId: string): Promise<void> {
-    return await invoke("remove_pi_agent_live_provider", { providerId });
+  async removePiLiveProvider(providerId: string): Promise<void> {
+    return await invoke("remove_pi_live_provider", { providerId });
   },
 };
 

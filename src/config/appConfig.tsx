@@ -24,7 +24,7 @@ export const APP_IDS: AppId[] = [
   "opencode",
   "openclaw",
   "hermes",
-  "pi-agent",
+  "pi",
 ];
 
 /** App IDs shown in Skills panels (excludes OpenClaw — it doesn't support Skills) */
@@ -34,7 +34,7 @@ export const SKILLS_APP_IDS: AppId[] = [
   "gemini",
   "opencode",
   "hermes",
-  "pi-agent",
+  "pi",
 ];
 
 /** App IDs shown in MCP panels (excludes OpenClaw) */
@@ -111,7 +111,7 @@ export const APP_ICON_MAP: Record<AppId, AppConfig> = {
     badgeClass:
       "bg-violet-500/10 text-violet-700 dark:text-violet-300 hover:bg-violet-500/20 border-0 gap-1.5",
   },
-  "pi-agent": {
+  "pi": {
     label: "Pi",
     icon: <PiIcon size={14} />,
     activeClass:

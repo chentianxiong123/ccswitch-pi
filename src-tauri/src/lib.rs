@@ -26,7 +26,7 @@ mod model_capabilities;
 mod openclaw_config;
 mod opencode_config;
 mod panic_hook;
-pub mod pi_agent_config;
+pub mod pi_config;
 mod prompt;
 mod prompt_files;
 mod provider;
@@ -106,7 +106,7 @@ pub use services::model_fetch::{fetch_models, FetchedModel};
 pub use services::omo::{OmoLocalFileData, OmoService, SLIM as OMO_SLIM, STANDARD as OMO_STANDARD};
 pub use services::provider::{
     import_hermes_providers_from_live, import_openclaw_providers_from_live,
-    import_opencode_providers_from_live, import_pi_agent_providers_from_live,
+    import_opencode_providers_from_live, import_pi_providers_from_live,
     update_toml_common_config_snippet,
 };
 pub use services::s3_auto_sync::AutoSyncSuppressionGuard as S3AutoSyncSuppressionGuard;
@@ -291,14 +291,14 @@ pub fn sync_all_session_usage(db: &Database) -> Result<SessionSyncResult, AppErr
         Err(e) => result.errors.push(format!("Gemini 同步失败: {e}")),
     }
 
-    match services::session_usage_pi_agent::sync_pi_agent_usage(db) {
+    match services::session_usage_pi::sync_pi_usage(db) {
         Ok(pi_result) => {
             result.imported += pi_result.imported;
             result.skipped += pi_result.skipped;
             result.files_scanned += pi_result.files_scanned;
             result.errors.extend(pi_result.errors);
         }
-        Err(e) => result.errors.push(format!("PiAgent 同步失败: {e}")),
+        Err(e) => result.errors.push(format!("Pi 同步失败: {e}")),
     }
 
     Ok(result)
@@ -504,12 +504,12 @@ pub const WEB_COMPAT_TAURI_COMMANDS: &[&str] = &[
     "set_hermes_memory_enabled",
     "open_hermes_web_ui",
     "launch_hermes_dashboard",
-    "import_pi_agent_providers_from_live",
-    "get_pi_agent_live_provider_ids",
-    "get_pi_agent_live_provider",
-    "set_pi_agent_live_provider",
-    "remove_pi_agent_live_provider",
-    "get_pi_agent_config",
+    "import_pi_providers_from_live",
+    "get_pi_live_provider_ids",
+    "get_pi_live_provider",
+    "set_pi_live_provider",
+    "remove_pi_live_provider",
+    "get_pi_config",
     "scan_openclaw_config_health",
     "get_openclaw_default_model",
     "set_openclaw_default_model",
@@ -1277,7 +1277,7 @@ pub fn run() {
                 Ok(_) => log::debug!("○ No Hermes provider changes from live config"),
                 Err(e) => log::warn!("✗ Failed to import Hermes providers: {e}"),
             }
-            match crate::services::provider::import_pi_agent_providers_from_live(&app_state) {
+            match crate::services::provider::import_pi_providers_from_live(&app_state) {
                 Ok(count) if count > 0 => {
                     log::info!("✓ Synced {count} Pi-Agent provider(s) from live config");
                 }

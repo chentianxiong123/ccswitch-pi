@@ -124,7 +124,7 @@ export function useSettingsForm(): UseSettingsFormResult {
       geminiConfigDir: sanitizeDir(data.geminiConfigDir),
       opencodeConfigDir: sanitizeDir(data.opencodeConfigDir),
       openclawConfigDir: sanitizeDir(data.openclawConfigDir),
-      piAgentConfigDir: sanitizeDir(data.piAgentConfigDir),
+      piConfigDir: sanitizeDir(data.piConfigDir),
       language: normalizedLanguage,
     };
 
@@ -191,7 +191,7 @@ export function useSettingsForm(): UseSettingsFormResult {
         geminiConfigDir: sanitizeDir(serverData.geminiConfigDir),
         opencodeConfigDir: sanitizeDir(serverData.opencodeConfigDir),
         openclawConfigDir: sanitizeDir(serverData.openclawConfigDir),
-        piAgentConfigDir: sanitizeDir(serverData.piAgentConfigDir),
+        piConfigDir: sanitizeDir(serverData.piConfigDir),
         language: normalizedLanguage,
       };
 
