@@ -79,6 +79,61 @@ pub fn get_models_path() -> PathBuf {
     get_pi_dir().join("models.json")
 }
 
+/// pi settings.json 中的原生默认值
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct PiNativeDefaults {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_provider: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default_model: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_dir: Option<String>,
+}
+
+/// 获取 pi 配置目录（Result 版本，供 session 管理等使用）
+pub(crate) fn get_pi_agent_dir() -> Result<PathBuf, AppError> {
+    let path = get_pi_dir();
+    if !path.is_absolute() {
+        return Err(AppError::Config(format!(
+            "Pi agent dir must resolve to an absolute directory: {}",
+            path.display()
+        )));
+    }
+    Ok(path)
+}
+
+/// 读取 pi settings.json 中的原生默认值
+pub(crate) fn read_pi_native_defaults() -> Result<PiNativeDefaults, AppError> {
+    let path = get_pi_dir().join("settings.json");
+    if !path.exists() {
+        return Ok(PiNativeDefaults::default());
+    }
+    let content = std::fs::read_to_string(&path).map_err(|e| AppError::io(&path, e))?;
+    let value: Value = serde_json::from_str(&content)
+        .map_err(|e| AppError::Config(format!("Failed to parse pi settings.json: {e}")))?;
+    let object = value.as_object().ok_or_else(|| {
+        AppError::Config(format!(
+            "Pi settings root must be an object: {}",
+            path.display()
+        ))
+    })?;
+    Ok(PiNativeDefaults {
+        default_provider: object
+            .get("defaultProvider")
+            .and_then(|v| v.as_str())
+            .map(str::to_string),
+        default_model: object
+            .get("defaultModel")
+            .and_then(|v| v.as_str())
+            .map(str::to_string),
+        session_dir: object
+            .get("sessionDir")
+            .and_then(|v| v.as_str())
+            .map(str::to_string),
+    })
+}
+
 // ============================================================================
 // Type Definitions
 // ============================================================================
