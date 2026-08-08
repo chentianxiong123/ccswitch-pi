@@ -122,7 +122,6 @@ rpc_business_methods!(
     "get_claude_config_status",
     "get_config_status",
     "restart_app",
-    "check_for_updates",
     "is_portable_mode",
     "get_claude_plugin_status",
     "read_claude_plugin_config",
@@ -1759,11 +1758,7 @@ pub async fn dispatch_command(
             Ok(serde_json::json!(ok))
         }
 
-        "check_for_updates" => {
-            // Returns the update URL for client to handle
-            let url = cc_switch_core::check_for_updates().map_err(RpcError::app_error)?;
-            Ok(serde_json::json!({ "url": url }))
-        }
+        
 
         "is_portable_mode" => {
             let is_portable = cc_switch_core::is_portable_mode().map_err(RpcError::app_error)?;
