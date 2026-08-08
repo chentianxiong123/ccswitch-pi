@@ -247,7 +247,8 @@ function App() {
       activeApp !== "opencode" &&
       activeApp !== "openclaw" &&
       activeApp !== "gemini" &&
-      activeApp !== "hermes"
+      activeApp !== "hermes" &&
+      activeApp !== "pi"
     ) {
       setCurrentView("providers");
     }
