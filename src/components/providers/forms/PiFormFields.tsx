@@ -46,6 +46,7 @@ import {
 } from "@/lib/api/model-fetch";
 import type { ProviderCategory } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
+import { generateUUID } from "@/utils/uuid";
 import type { PiApiMode, PiModel } from "./hooks/usePiFormState";
 
 export interface PiFormFieldsProps {
@@ -201,7 +202,7 @@ export function PiFormFields({
 
   const modelKeysRef = useRef<string[]>([]);
   while (modelKeysRef.current.length < models.length) {
-    modelKeysRef.current.push(crypto.randomUUID());
+    modelKeysRef.current.push(generateUUID());
   }
   if (modelKeysRef.current.length > models.length) {
     modelKeysRef.current.length = models.length;
@@ -229,7 +230,7 @@ export function PiFormFields({
   };
 
   const handleAddModel = () => {
-    modelKeysRef.current.push(crypto.randomUUID());
+    modelKeysRef.current.push(generateUUID());
     onModelsChange([
       ...models,
       {

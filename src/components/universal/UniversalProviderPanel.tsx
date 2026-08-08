@@ -7,6 +7,7 @@ import { UniversalProviderCard } from "./UniversalProviderCard";
 import { UniversalProviderFormModal } from "./UniversalProviderFormModal";
 import { universalProvidersApi } from "@/lib/api";
 import type { UniversalProvider, UniversalProvidersMap } from "@/types";
+import { generateUUID } from "@/utils/uuid";
 
 export function UniversalProviderPanel() {
   const { t } = useTranslation();
@@ -170,7 +171,7 @@ export function UniversalProviderPanel() {
     async (provider: UniversalProvider) => {
       const duplicated: UniversalProvider = {
         ...JSON.parse(JSON.stringify(provider)),
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         name: `${provider.name} copy`,
         createdAt: Date.now(),
       };
