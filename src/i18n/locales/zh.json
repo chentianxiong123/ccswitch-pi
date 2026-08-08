@@ -1457,7 +1457,8 @@
       "codex_db": "Codex 数据库",
       "codex_session": "Codex 会话日志",
       "gemini_session": "Gemini 会话日志",
-      "opencode_session": "OpenCode 会话日志"
+      "opencode_session": "OpenCode 会话日志",
+      "pi_session": "PI 会话"
     },
     "sessionSync": {
       "trigger": "同步会话日志",
