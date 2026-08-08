@@ -43,6 +43,8 @@ import { ApiKeySection } from "./shared/ApiKeySection";
 import { EndpointField } from "./shared/EndpointField";
 import { ModelDropdown } from "./shared/ModelDropdown";
 
+import { generateUUID } from "@/utils/uuid";
+
 import { useApiKeyLink } from "./hooks/useApiKeyLink";
 import { providerSchema, type ProviderFormData } from "@/lib/schemas/provider";
 import type {
@@ -167,7 +169,7 @@ function fallbackCatalogRouteId(usedRoutes: Set<string>) {
 
 function createRouteRow(row: RouteRowValues): RouteRow {
   return {
-    rowId: crypto.randomUUID(),
+    rowId: generateUUID(),
     ...row,
   };
 }
