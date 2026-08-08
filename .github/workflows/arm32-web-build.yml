@@ -2,6 +2,9 @@ name: Web ARM32 Build
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - web
 
 env:
   RUST_VERSION: 1.91.1
@@ -86,3 +89,18 @@ jobs:
           name: linux-armv7-musl
           path: release-assets/
           retention-days: 7
+
+      - name: Create GitHub Release
+        if: github.ref == 'refs/heads/web' && github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="v${VERSION}-web.$(date +%Y%m%d%H%M)"
+          ASSET_NAME="cc-switch-web-v${VERSION}-linux-armv7-musl"
+          gh release create "$TAG" \
+            "release-assets/${ASSET_NAME}" \
+            --repo "${{ github.repository }}" \
+            --title "Web v${VERSION}" \
+            --notes "Auto-built from web branch commit ${{ github.sha }}"
