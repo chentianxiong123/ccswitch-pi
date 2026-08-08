@@ -1118,6 +1118,26 @@ export function SessionManagerPage({ appId }: { appId: string }) {
                                 <span>Gemini CLI</span>
                               </div>
                             </SelectItem>
+                            <SelectItem value="hermes">
+                              <div className="flex items-center gap-2">
+                                <ProviderIcon
+                                  icon="hermes"
+                                  name="hermes"
+                                  size={14}
+                                />
+                                <span>Hermes</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="pi">
+                              <div className="flex items-center gap-2">
+                                <ProviderIcon
+                                  icon="pi"
+                                  name="pi"
+                                  size={14}
+                                />
+                                <span>PI</span>
+                              </div>
+                            </SelectItem>
                           </SelectContent>
                         </Select>
 
