@@ -74,7 +74,7 @@ import { CommonConfigEditor } from "./CommonConfigEditor";
 import GeminiConfigEditor from "./GeminiConfigEditor";
 import JsonEditor from "@/components/JsonEditor";
 import { Label } from "@/components/ui/label";
-import { ProviderPresetSelector } from "./ProviderPresetSelector";
+
 import { BasicFormFields } from "./BasicFormFields";
 import { ClaudeFormFields } from "./ClaudeFormFields";
 import { ClaudeDesktopProviderForm } from "./ClaudeDesktopProviderForm";
@@ -1940,18 +1940,6 @@ function ProviderFormFull({
           onSubmit={form.handleSubmit(handleSubmit)}
           className="space-y-6 glass rounded-xl p-6 border border-white/10"
         >
-          {!initialData && (
-            <ProviderPresetSelector
-              selectedPresetId={selectedPresetId}
-              presetEntries={presetEntries}
-              presetCategoryLabels={presetCategoryLabels}
-              onPresetChange={handlePresetChange}
-              onUniversalPresetSelect={onUniversalPresetSelect}
-              onManageUniversalProviders={onManageUniversalProviders}
-              category={category}
-            />
-          )}
-
           <BasicFormFields
             form={form}
             beforeNameSlot={
