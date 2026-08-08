@@ -1453,7 +1453,8 @@
       "codex_db": "Codex DB",
       "codex_session": "Codex セッション",
       "gemini_session": "Gemini セッション",
-      "opencode_session": "OpenCode セッション"
+      "opencode_session": "OpenCode セッション",
+      "pi_session": "PI セッション"
     },
     "sessionSync": {
       "trigger": "セッションログを同期",
