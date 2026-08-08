@@ -235,19 +235,19 @@ fn sync_single_file(db: &Database, file_path: &Path) -> Result<(u32, u32), AppEr
                 .and_then(|v| v.as_str())
                 .map(|s| s.to_string()),
             input_tokens: usage
-                .get("input_tokens")
+                .get("input")
                 .and_then(|v| v.as_u64())
                 .unwrap_or(0) as u32,
             output_tokens: usage
-                .get("output_tokens")
+                .get("output")
                 .and_then(|v| v.as_u64())
                 .unwrap_or(0) as u32,
             cache_read_tokens: usage
-                .get("cache_read_input_tokens")
+                .get("cacheRead")
                 .and_then(|v| v.as_u64())
                 .unwrap_or(0) as u32,
             cache_creation_tokens: usage
-                .get("cache_creation_input_tokens")
+                .get("cacheWrite")
                 .and_then(|v| v.as_u64())
                 .unwrap_or(0) as u32,
             stop_reason: message
