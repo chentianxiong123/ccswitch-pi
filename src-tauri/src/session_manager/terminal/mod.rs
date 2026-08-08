@@ -315,7 +315,7 @@ fn build_shell_command(command: &str, cwd: Option<&str>) -> String {
     }
 }
 
-fn shell_escape(value: &str) -> String {
+pub(crate) fn shell_escape(value: &str) -> String {
     let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
     format!("\"{escaped}\"")
 }
