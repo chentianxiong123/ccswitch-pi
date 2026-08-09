@@ -45,6 +45,7 @@ const PI_AGENT_DEFAULT_CONFIG_OBJ = {
   name: "",
   baseUrl: "",
   apiKey: "",
+  api: PI_AGENT_DEFAULT_API_MODE,
 } as const;
 
 export const PI_AGENT_DEFAULT_CONFIG = JSON.stringify(
