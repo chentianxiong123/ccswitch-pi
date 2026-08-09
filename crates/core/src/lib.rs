@@ -260,7 +260,7 @@ pub fn get_proxy_flags(ctx: &CoreContext, app: &str) -> (bool, bool) {
 /// 添加供应商
 pub fn add_provider(ctx: &CoreContext, app: &str, provider: Provider) -> Result<bool, String> {
     let app_type = AppType::from_str(app).map_err(|e| e.to_string())?;
-    ProviderService::add(ctx.app_state(), app_type, provider, false).map_err(|e| e.to_string())
+    ProviderService::add(ctx.app_state(), app_type, provider, true).map_err(|e| e.to_string())
 }
 
 /// 更新供应商
