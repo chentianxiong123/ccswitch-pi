@@ -1144,7 +1144,13 @@ pub(crate) fn write_live_snapshot(app_type: &AppType, provider: &Provider) -> Re
             log::debug!("Hermes provider '{}' written to live config", provider.id);
         }
         AppType::Pi => {
-            crate::pi_config::set_provider(&provider.id, provider.settings_config.clone())?;
+            let mut config = provider.settings_config.clone();
+            if let Some(obj) = config.as_object_mut() {
+                if obj.get("name").and_then(|v| v.as_str()).map_or(true, |s| s.is_empty()) {
+                    obj.insert("name".to_string(), json!(provider.name));
+                }
+            }
+            crate::pi_config::set_provider(&provider.id, config)?;
             log::debug!("Pi provider '{}' written to live config", provider.id);
         }
     }
