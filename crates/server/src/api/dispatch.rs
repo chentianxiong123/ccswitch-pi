@@ -405,10 +405,26 @@ pub async fn dispatch_command(
                 .get("provider")
                 .ok_or_else(|| RpcError::invalid_params("missing 'provider' field"))?;
 
-            let provider: cc_switch_core::CoreProvider =
+            let mut provider: cc_switch_core::CoreProvider =
                 serde_json::from_value(provider_value.clone()).map_err(|e| {
                     RpcError::invalid_params(format!("invalid 'provider' value: {e}"))
                 })?;
+
+            if provider.id.is_empty() {
+                if let Some(provider_key) = params
+                    .get("providerKey")
+                    .and_then(|v| v.as_str())
+                    .filter(|s| !s.is_empty())
+                {
+                    provider.id = provider_key.to_string();
+                } else if let Some(provider_key) = provider_value
+                    .get("providerKey")
+                    .and_then(|v| v.as_str())
+                    .filter(|s| !s.is_empty())
+                {
+                    provider.id = provider_key.to_string();
+                }
+            }
 
             let ok =
                 cc_switch_core::add_provider(core, app, provider).map_err(RpcError::app_error)?;
