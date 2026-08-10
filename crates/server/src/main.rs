@@ -8,8 +8,6 @@ use axum::{
 };
 use rust_embed::RustEmbed;
 use std::net::{IpAddr, TcpListener as StdTcpListener};
-use std::sync::Arc;
-use std::time::Duration;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -18,7 +16,7 @@ use cc_switch_server::{
         export_sql_download_handler, import_sql_upload_handler, invoke_handler, upgrade_handler,
         MAX_SQL_UPLOAD_BYTES,
     },
-    create_event_bus, load_auth_config, ServerState, SessionStore,
+    create_event_bus, ServerState,
 };
 
 // 嵌入前端静态文件（构建时从 dist 目录读取）
@@ -132,31 +130,8 @@ async fn main() {
     // Create event bus
     let event_bus = create_event_bus(100);
 
-    // Load auth configuration (None means auth is disabled)
-    let auth_config = load_auth_config();
-    if auth_config.is_some() {
-        tracing::info!("Web authentication enabled");
-    } else {
-        tracing::info!("Web authentication disabled (no config found)");
-    }
-
-    // Create session store
-    let session_store = Arc::new(SessionStore::new());
-
-    // Spawn session cleanup task (runs every hour)
-    let cleanup_store = Arc::clone(&session_store);
-    tokio::spawn(async move {
-        let mut interval = tokio::time::interval(Duration::from_secs(3600));
-        loop {
-            interval.tick().await;
-            cleanup_store.cleanup_expired();
-            tracing::debug!("Session cleanup completed");
-        }
-    });
-
-    // Create server state
-    let auth_token = std::env::var("CC_SWITCH_AUTH_TOKEN").ok();
-    let state = ServerState::new(auth_token, event_bus, session_store, auth_config);
+    // Create server state (no web auth)
+    let state = ServerState::new(event_bus);
 
     // CORS configuration
     let cors = CorsLayer::new()
