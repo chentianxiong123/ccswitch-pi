@@ -3,7 +3,7 @@ use axum::{
         ws::{Message, WebSocket, WebSocketUpgrade},
         Query, State,
     },
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
 };
 use futures::{SinkExt, StreamExt};
@@ -15,7 +15,7 @@ use tokio::sync::mpsc;
 use crate::rpc::{RpcError, RpcRequest, RpcResponse};
 use crate::state::ServerState;
 
-use super::{dispatch::dispatch_command, session_auth::has_valid_session};
+use super::dispatch::dispatch_command;
 
 /// Protocol-only WebSocket methods that do not participate in business command dispatch.
 pub const WS_PROTOCOL_METHODS: &[&str] = &["event.subscribe", "event.unsubscribe", "ping"];
@@ -28,38 +28,8 @@ pub struct WsAuthQuery {
 pub async fn upgrade_handler(
     ws: WebSocketUpgrade,
     State(state): State<Arc<ServerState>>,
-    Query(query): Query<WsAuthQuery>,
-    headers: HeaderMap,
+    Query(_query): Query<WsAuthQuery>,
 ) -> impl IntoResponse {
-    // Auth check with multiple methods:
-    // 1. If auth_token (env var) is set, check query param
-    // 2. If auth_config (web auth) is set, check cookie
-    // 3. If neither is set, allow connection
-
-    // Check query param auth (backward compatibility with CC_SWITCH_AUTH_TOKEN)
-    if let Some(expected_token) = &state.auth_token {
-        match query.auth.as_deref() {
-            Some(token) if token == expected_token => {
-                // Query param auth passed, proceed
-                return ws.on_upgrade(move |socket| handle_socket(socket, state));
-            }
-            _ => {
-                // Query param auth failed, but continue to check cookie if web auth is enabled
-                if state.auth_config.is_none() {
-                    // No web auth configured, fail the request
-                    return StatusCode::UNAUTHORIZED.into_response();
-                }
-            }
-        }
-    }
-
-    // Check cookie auth (web authentication)
-    if state.auth_config.is_some() {
-        if !has_valid_session(&state, &headers) {
-            return StatusCode::UNAUTHORIZED.into_response();
-        }
-    }
-
     ws.on_upgrade(move |socket| handle_socket(socket, state))
 }
 

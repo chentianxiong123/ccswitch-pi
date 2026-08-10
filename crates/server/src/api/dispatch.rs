@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use serde_json::Value;
 
-use crate::{auth::verify_password, events::ServerEvent, rpc::RpcError, ServerState};
+use crate::{events::ServerEvent, rpc::RpcError, ServerState};
 
 macro_rules! rpc_business_methods {
     ($($method:literal),+ $(,)?) => {
@@ -3390,58 +3390,7 @@ pub async fn dispatch_command(
         }
 
         // ========================
-        // Auth commands
+        // Auth commands (removed - web auth is no longer supported)
         // ========================
-        "auth.status" => {
-            let enabled = state.auth_config.is_some();
-            Ok(serde_json::json!({ "enabled": enabled }))
-        }
-
-        "auth.login" => {
-            // Check if auth is enabled
-            let auth_config = match &state.auth_config {
-                Some(config) => config,
-                None => {
-                    return Ok(serde_json::json!({
-                        "success": false,
-                        "error": "Authentication not configured"
-                    }));
-                }
-            };
-
-            // Get password from params
-            let password = params
-                .get("password")
-                .and_then(|v| v.as_str())
-                .ok_or_else(|| RpcError::invalid_params("missing 'password' field"))?;
-
-            // Verify password
-            if !verify_password(password, &auth_config.password_hash) {
-                return Ok(serde_json::json!({
-                    "success": false,
-                    "error": "Invalid password"
-                }));
-            }
-
-            // Create session
-            let token = state.session_store.create_session();
-
-            Ok(serde_json::json!({
-                "success": true,
-                "token": token
-            }))
-        }
-
-        "auth.check" => {
-            let token = params
-                .get("token")
-                .and_then(|v| v.as_str())
-                .ok_or_else(|| RpcError::invalid_params("missing 'token' field"))?;
-
-            let valid = state.session_store.validate_session(token);
-            Ok(serde_json::json!({ "valid": valid }))
-        }
-
-        _ => Err(RpcError::method_not_found(method)),
     }
 }
