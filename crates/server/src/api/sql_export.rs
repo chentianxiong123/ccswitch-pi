@@ -3,7 +3,7 @@ use std::sync::Arc;
 use axum::{
     body::Body,
     extract::State,
-    http::{header, HeaderMap, HeaderValue, Response, StatusCode},
+    http::{header, HeaderValue, Response, StatusCode},
     response::IntoResponse,
     Json,
 };
@@ -11,22 +11,9 @@ use serde_json::json;
 
 use crate::state::ServerState;
 
-use super::session_auth::has_valid_session;
-
 pub async fn export_sql_download_handler(
     State(state): State<Arc<ServerState>>,
-    headers: HeaderMap,
 ) -> impl IntoResponse {
-    if state.auth_config.is_some() && !has_valid_session(&state, &headers) {
-        return (
-            StatusCode::UNAUTHORIZED,
-            Json(json!({
-                "success": false,
-                "message": "Unauthorized"
-            })),
-        )
-            .into_response();
-    }
 
     match cc_switch_core::export_config_as_sql(&state.core) {
         Ok((file_name, sql_bytes)) => {
