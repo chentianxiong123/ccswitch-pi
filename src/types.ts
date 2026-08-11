@@ -66,7 +66,6 @@ export interface UsageScript {
   secretAccessKey?: string; // 火山方舟 SecretAccessKey
   teamOrganizationId?: string; // 智谱团队套餐组织 ID（请求头 bigmodel-organization）
   teamProjectId?: string; // 智谱团队套餐项目 ID（请求头 bigmodel-project）
-  codingPlanProvider?: string; // Coding Plan 供应商标识（如 "kimi", "zhipu", "minimax"）
   autoQueryInterval?: number; // 自动查询间隔（单位：分钟，0 表示禁用）
   autoIntervalMinutes?: number; // 自动查询间隔（分钟）- 别名字段
   request?: {
@@ -383,7 +382,6 @@ export interface Settings {
   // User has confirmed the common config first-run notice
   commonConfigConfirmed?: boolean;
   // 首选语言（可选，默认中文）
-  language?: "en" | "zh" | "zh-TW" | "ja";
 
   // 主页面显示的应用（默认全部显示）
   visibleApps?: VisibleApps;
@@ -437,7 +435,6 @@ export interface Settings {
   // macOS: "terminal" | "iterm2" | "warp" | "alacritty" | "kitty" | "ghostty" | "wezterm" | "kaku"
   // Windows: "cmd" | "powershell" | "wt"
   // Linux: "gnome-terminal" | "konsole" | "xfce4-terminal" | "alacritty" | "kitty" | "ghostty"
-  preferredTerminal?: string;
 
   // ===== 本机自动迁移状态 =====
   localMigrations?: {
