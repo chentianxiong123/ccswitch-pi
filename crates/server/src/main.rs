@@ -256,7 +256,6 @@ async fn main() {
     println!("║  🔌 WebSocket: ws://{}:{}/api/ws{:11}║", host, port, "");
     println!("╠════════════════════════════════════════════════════╣");
     if !is_loopback {
-        println!("║  🔒 Auth:      Enable ~/.cc-switch/web-auth.json   ║");
         println!("║  📥 SQL Upload: POST /api/import-config            ║");
         println!("║  📤 SQL Export: GET  /api/export-config            ║");
         println!("╠════════════════════════════════════════════════════╣");
@@ -267,12 +266,6 @@ async fn main() {
 
     if !is_loopback {
         tracing::info!("Remote access enabled on http://{}", addr);
-        if state.auth_config.is_some() {
-            tracing::info!("Authenticated SQL upload available at /api/import-config");
-            tracing::info!("Authenticated SQL export available at /api/export-config");
-        } else {
-            tracing::warn!("Remote access is enabled without web-auth.json; authenticated upload protection is disabled");
-        }
     }
 
     tracing::info!("Starting CC-Switch server on {}", addr);
