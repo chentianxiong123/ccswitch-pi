@@ -750,6 +750,7 @@ const ImportSkillsDialog: React.FC<ImportSkillsDialogProps> = ({
           opencode: skill.foundIn.includes("opencode"),
           openclaw: false,
           hermes: skill.foundIn.includes("hermes"),
+          pi: skill.foundIn.includes("pi"),
         },
       ]),
     ),
@@ -819,6 +820,7 @@ const ImportSkillsDialog: React.FC<ImportSkillsDialogProps> = ({
                           opencode: false,
                           openclaw: false,
                           hermes: false,
+                          pi: false,
                         }
                       }
                       onToggle={(app, enabled) => {
@@ -832,6 +834,7 @@ const ImportSkillsDialog: React.FC<ImportSkillsDialogProps> = ({
                               opencode: false,
                               openclaw: false,
                               hermes: false,
+                              pi: false,
                             }),
                             [app]: enabled,
                           },
