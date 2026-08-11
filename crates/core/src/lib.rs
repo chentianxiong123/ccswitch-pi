@@ -2470,13 +2470,7 @@ fn get_skill_service(ctx: &CoreContext) -> Result<&Arc<SkillService>, String> {
 }
 
 fn parse_skill_app_type(app: &str) -> Result<AppType, String> {
-    match app.to_lowercase().as_str() {
-        "claude" => Ok(AppType::Claude),
-        "codex" => Ok(AppType::Codex),
-        "gemini" => Ok(AppType::Gemini),
-        "opencode" => Ok(AppType::OpenCode),
-        _ => Err(format!("不支持的 app 类型: {app}")),
-    }
+    AppType::from_str(app).map_err(|e| e.to_string())
 }
 
 // ========================
