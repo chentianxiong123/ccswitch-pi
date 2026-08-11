@@ -32,6 +32,7 @@ impl McpApps {
             AppType::OpenClaw => false, // OpenClaw doesn't support MCP
             AppType::Hermes => self.hermes,
             AppType::Pi => self.pi,
+            AppType::ClaudeDesktop => false,
         }
     }
 
