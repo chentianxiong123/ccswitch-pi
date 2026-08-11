@@ -2,15 +2,13 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Multipart, State},
-    http::{HeaderMap, StatusCode},
+    http::StatusCode,
     response::IntoResponse,
     Json,
 };
 use serde_json::{json, Value};
 
 use crate::state::ServerState;
-
-use super::session_auth::has_valid_session;
 
 pub const MAX_SQL_UPLOAD_BYTES: usize = 200 * 1024 * 1024;
 
@@ -20,18 +18,8 @@ fn respond(status: StatusCode, body: Value) -> impl IntoResponse {
 
 pub async fn import_sql_upload_handler(
     State(state): State<Arc<ServerState>>,
-    headers: HeaderMap,
     mut multipart: Multipart,
 ) -> impl IntoResponse {
-    if state.auth_config.is_some() && !has_valid_session(&state, &headers) {
-        return respond(
-            StatusCode::UNAUTHORIZED,
-            json!({
-                "success": false,
-                "message": "Unauthorized"
-            }),
-        );
-    }
 
     let field = match multipart.next_field().await {
         Ok(Some(field)) => field,
