@@ -31,8 +31,7 @@ impl McpApps {
             AppType::OpenCode => self.opencode,
             AppType::OpenClaw => false, // OpenClaw doesn't support MCP
             AppType::Hermes => self.hermes,
-            AppType::Pi => false,
-            AppType::ClaudeDesktop => false,
+            AppType::Pi => self.pi,
         }
     }
 
@@ -45,7 +44,7 @@ impl McpApps {
             AppType::OpenCode => self.opencode = enabled,
             AppType::OpenClaw => {} // OpenClaw doesn't support MCP, ignore
             AppType::Hermes => self.hermes = enabled,
-            AppType::Pi => {} // pi doesn't support MCP, ignore
+            AppType::Pi => self.pi = enabled,
             AppType::ClaudeDesktop => {} // Claude Desktop 3P provider config doesn't support MCP here
         }
     }
@@ -106,7 +105,7 @@ impl SkillApps {
             AppType::Gemini => self.gemini,
             AppType::OpenCode => self.opencode,
             AppType::Hermes => self.hermes,
-            AppType::Pi => false,
+            AppType::Pi => self.pi,
             AppType::OpenClaw => false, // OpenClaw doesn't support Skills
             AppType::ClaudeDesktop => false,
         }
@@ -120,7 +119,7 @@ impl SkillApps {
             AppType::Gemini => self.gemini = enabled,
             AppType::OpenCode => self.opencode = enabled,
             AppType::Hermes => self.hermes = enabled,
-            AppType::Pi => {} // pi doesn't support Skills, ignore
+            AppType::Pi => self.pi = enabled,
             AppType::OpenClaw => {} // OpenClaw doesn't support Skills, ignore
             AppType::ClaudeDesktop => {} // Claude Desktop 3P profiles don't use CC Switch skill sync
         }
