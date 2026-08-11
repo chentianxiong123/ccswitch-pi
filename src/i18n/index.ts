@@ -15,15 +15,11 @@ export function getInitialLanguage(): Language {
   return "zh";
 }
 
-void i18n.use(initReactI18next).init({
+export const i18nReady = i18n.use(initReactI18next).init({
   resources,
   lng: getInitialLanguage(),
   fallbackLng: "zh",
   interpolation: { escapeValue: false },
-});
-
-export const i18nReady = new Promise<void>((resolve) => {
-  i18n.on("initialized", () => resolve());
 });
 
 export default i18n;
