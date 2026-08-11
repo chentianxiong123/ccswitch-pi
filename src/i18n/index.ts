@@ -22,4 +22,8 @@ void i18n.use(initReactI18next).init({
   interpolation: { escapeValue: false },
 });
 
+export const i18nReady = new Promise<void>((resolve) => {
+  i18n.on("initialized", () => resolve());
+});
+
 export default i18n;
