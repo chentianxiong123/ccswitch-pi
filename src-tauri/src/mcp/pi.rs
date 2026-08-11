@@ -11,8 +11,6 @@ use std::fs;
 use crate::error::AppError;
 use crate::pi_config::get_pi_dir;
 
-use super::validation::validate_server_spec;
-
 // ============================================================================
 // Path
 // ============================================================================
