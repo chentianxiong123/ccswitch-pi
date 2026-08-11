@@ -3392,5 +3392,7 @@ pub async fn dispatch_command(
         // ========================
         // Auth commands (removed - web auth is no longer supported)
         // ========================
+
+        _ => Err(RpcError::method_not_found(method)),
     }
 }
